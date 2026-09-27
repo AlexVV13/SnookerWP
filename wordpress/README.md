@@ -7,7 +7,7 @@ Ranking, uitslagen, agenda en invoer als invoegbare templates. Geen Node-app en 
 1. Bouw de zip:
 
    ```bash
-   node webhost/snooker/scripts/package-wp-plugin.js
+   npm run package:wp
    ```
 
 2. In WordPress: **Plugins → Nieuwe plugin → Uploaden** en `snookerclub.zip` kiezen.
@@ -16,7 +16,7 @@ Ranking, uitslagen, agenda en invoer als invoegbare templates. Geen Node-app en 
 
 Uitgebreide stappen: [../docs/INSTALL.md](../docs/INSTALL.md).
 
-De zip bevat HTML/CSS/JS. Kopieer niet alleen de PHP-map.
+De zip bevat HTML/CSS/JS onder `public/`. Kopieer niet alleen de PHP-map: zonder `public/` mist de vormgeving.
 
 ## Templates op de site
 

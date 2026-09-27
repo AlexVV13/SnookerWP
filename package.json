@@ -7,7 +7,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node scripts/check.js"
+    "check": "node scripts/check.js",
+    "test": "node scripts/check.js",
+    "package:wp": "node scripts/package-wp-plugin.js"
   },
   "engines": {
     "node": ">=20"

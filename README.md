@@ -61,7 +61,7 @@ Data staat in volume `snooker-data` (`club.json`).
 Zelfde app als installeerbare plugin, met automatische update-checks:
 
 ```bash
-node scripts/package-wp-plugin.js
+npm run package:wp
 ```
 
 Dat schrijft `public/plugin/snookerclub.zip`. Na herstart van de app is die te downloaden op `/webhost/snooker/plugin/snookerclub.zip`. Docker bouwt het bestand mee in de image. Zie `wordpress/README.md`.

@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Local env and runtime data
+.env
+data/*
+!data/.gitkeep
+
+# Generated WordPress plugin zips
+public/plugin/
+wordpress/dist/
+
+# Logs and OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

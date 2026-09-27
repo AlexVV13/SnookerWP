@@ -12,7 +12,7 @@ De plugin staat in één map: `wordpress/snookerclub/`.
 
 ```bash
 cd webhost/snooker
-node scripts/package-wp-plugin.js
+npm run package:wp
 ```
 
 Dat maakt `public/plugin/snookerclub.zip` (PHP + `public/` CSS/JS).
@@ -30,7 +30,11 @@ Kopieer niet alleen de PHP-bestanden. Zonder `public/` ontbreekt de vormgeving.
 
 ### Alternatief zonder zip
 
-Kopieer de hele map `wordpress/snookerclub` naar `wp-content/plugins/snookerclub`.
+1. Kopieer `wordpress/snookerclub` naar `wp-content/plugins/snookerclub`.
+2. Kopieer ook de map `public/` naar `wp-content/plugins/snookerclub/public/` (CSS/JS/HTML).
+3. Activeer de plugin.
+
+Zonder die `public/`-map mist de vormgeving. De zip doet beide stappen in één keer.
 
 ### Eerste clubnaam
 
