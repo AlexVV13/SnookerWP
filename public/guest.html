@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="nl" class="snooker-app-page">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SC De Merodesnookers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/webhost/snooker/guest.css" />
+</head>
+<body class="snooker-app-page">
+<div class="snooker-app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span>
+        <strong id="club-name">SC De Merodesnookers</strong>
+        <small id="club-kicker">Turnhout</small>
+      </span>
+    </div>
+    <nav class="guest-tabs" role="tablist">
+      <button type="button" class="on" data-guest-tab="club">Club</button>
+      <button type="button" data-guest-tab="match">Wedstrijd</button>
+      <button type="button" data-guest-tab="kpis">KPI's</button>
+      <button type="button" data-guest-tab="agenda">Agenda</button>
+    </nav>
+    <a class="ghost" href="/webhost/login">Clubportaal</a>
+  </header>
+  <main class="wrap">
+    <p class="lead" id="club-tag">Clubavonden, tornooien en uitslagen in Biljart Palace.</p>
+
+    <section class="notice" id="notice" hidden></section>
+    <section class="meta" id="club-meta" hidden></section>
+
+    <div data-guest-pane="club" class="home-stack">
+      <section class="card">
+        <p class="kicker">Clubstand</p>
+        <h2>Erelijst</h2>
+        <div class="podium" id="podium"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem. punten/frame</th></tr>
+            </thead>
+            <tbody id="player-table"><tr><td colspan="10">Nog geen spelers. Voeg namen toe onder Snookerclub → Clubbeheer.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="dossier-card" hidden>
+        <p class="kicker">Spelersblad</p>
+        <h2 id="dossier-title">Dossier</h2>
+        <div id="dossier-career" class="career-grid"></div>
+        <h3>Head-to-head</h3>
+        <div id="dossier-h2h" class="table-wrap"></div>
+        <h3>Partijen</h3>
+        <div id="dossier-table" class="table-wrap"></div>
+      </section>
+
+      <section class="card recent-card">
+        <p class="kicker">Laatste frames</p>
+        <h2>Recente uitslagen</h2>
+        <div id="recent" class="recent"></div>
+      </section>
+    </div>
+
+    <div data-guest-pane="kpis" hidden>
+      <section class="card kpi-intro">
+        <p class="kicker">Voortgang</p>
+        <h2>Clubcijfers</h2>
+        <p class="help">Doelen voor deze maand: wedstrijden, frames, nieuwe leden en clubavonden.</p>
+      </section>
+      <section class="stats">
+        <article>
+          <p class="label">Hoogste break</p>
+          <p class="value" id="high-break">—</p>
+          <p class="sub" id="high-break-who"></p>
+          <div class="meter" aria-hidden="true"><span id="high-break-bar"></span></div>
+        </article>
+        <article>
+          <p class="label">Deze maand</p>
+          <p class="value" id="match-count">0</p>
+          <p class="sub" id="tour-count"></p>
+          <div class="meter" aria-hidden="true"><span id="match-bar"></span></div>
+        </article>
+        <article>
+          <p class="label">Actieve spelers</p>
+          <p class="value" id="player-count">0</p>
+          <p class="sub" id="century-count"></p>
+          <div class="meter" aria-hidden="true"><span id="player-bar"></span></div>
+        </article>
+        <article>
+          <p class="label">Nieuwe leden</p>
+          <p class="value" id="member-count">0</p>
+          <p class="sub" id="member-count-sub"></p>
+          <div class="meter" aria-hidden="true"><span id="member-bar"></span></div>
+        </article>
+        <article>
+          <p class="label">Clubavonden</p>
+          <p class="value" id="night-count">0</p>
+          <p class="sub" id="night-count-sub"></p>
+          <div class="meter" aria-hidden="true"><span id="night-bar"></span></div>
+        </article>
+      </section>
+    </div>
+
+    <div data-guest-pane="agenda" hidden>
+      <section class="card agenda-card">
+        <div class="wizard-head">
+          <div>
+            <p class="kicker">Maandagenda</p>
+            <h2 id="guest-agenda-label">Agenda</h2>
+          </div>
+          <div class="agenda-nav">
+            <button type="button" class="ghost" id="guest-agenda-prev">Vorige</button>
+            <button type="button" class="ghost" id="guest-agenda-next">Volgende</button>
+          </div>
+        </div>
+        <div class="cal-weekdays" id="guest-weekdays"></div>
+        <div class="cal-grid" id="guest-agenda-grid"></div>
+        <div class="agenda-day">
+          <p class="kicker" id="guest-agenda-day-kicker">Dag</p>
+          <h3 id="guest-agenda-day-label">Kies een dag</h3>
+          <div id="guest-agenda-detail" class="recent"></div>
+        </div>
+      </section>
+    </div>
+
+    <div data-guest-pane="match" hidden>
+      <section class="card wizard-card">
+        <div class="wizard-head">
+          <div>
+            <p class="kicker">Stap voor stap</p>
+            <h2>Nieuwe wedstrijd</h2>
+          </div>
+          <p class="step-label" id="wiz-label">Avond</p>
+        </div>
+        <ol class="steps" aria-label="Voortgang">
+          <li class="step-dot on" data-step-dot="1">1. Avond</li>
+          <li class="step-dot" data-step-dot="2">2. Spelers</li>
+          <li class="step-dot" data-step-dot="3">3. Frames</li>
+          <li class="step-dot" data-step-dot="4">4. Afronden</li>
+        </ol>
+        <form id="match-form">
+          <section data-step="1">
+            <p class="help">Eerst de avond: welk toernooi, welke dag en waar speelden jullie?</p>
+            <div class="grid">
+              <label>Toernooi <input list="tournaments" name="tournament" required maxlength="80" placeholder="Clubavond" /></label>
+              <label>Datum <input type="date" name="date" required /></label>
+              <label>Soort
+                <select name="matchType">
+                  <option value="competitie">Competitie</option>
+                  <option value="vriendschappelijk">Vriendschappelijk</option>
+                  <option value="beker">Beker</option>
+                  <option value="finale">Finale</option>
+                  <option value="potblack">Potblack</option>
+                  <option value="ranking">Rankingtornooi</option>
+                  <option value="handicap">Handicaptornooi</option>
+                  <option value="6red">6 Red</option>
+                  <option value="open">Open Merode</option>
+                </select>
+              </label>
+              <label>Best of
+                <select name="bestOf">
+                  <option value="1">1 frame</option>
+                  <option value="3">Best of 3</option>
+                  <option value="5" selected>Best of 5</option>
+                  <option value="7">Best of 7</option>
+                  <option value="9">Best of 9</option>
+                </select>
+              </label>
+              <label>Baan / tafel <input name="table" maxlength="40" placeholder="Baan 1" /></label>
+            </div>
+          </section>
+
+          <section data-step="2" hidden>
+            <p class="help">Kies twee verschillende clubspelers. Nieuwe namen voegt de clubbaas toe in het beheer.</p>
+            <p class="sub" id="roster-hint">Spelers voegt de club toe in het beheer. Staat je naam er niet bij, vraag de clubbaas.</p>
+            <div class="grid">
+              <label>Speler 1
+                <select name="player1" required>
+                  <option value="">Kies speler</option>
+                </select>
+              </label>
+              <label>Speler 2
+                <select name="player2" required>
+                  <option value="">Kies speler</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section data-step="3" hidden>
+            <p class="help">Wie de meeste punten in een frame heeft, wint dat frame. Vul alleen gespeelde frames; 0–0 is niet gespeeld en telt niet mee voor het gemiddelde.</p>
+            <p class="sub" id="frame-rule">Gem. punten/frame is het gemiddelde van de gespeelde frames (WPBSA). Bij 6 Red is 75 het maximum zonder fouls.</p>
+            <div class="wiz-preview" id="wiz-preview"></div>
+            <div class="frames" id="frames"></div>
+          </section>
+
+          <section data-step="4" hidden>
+            <p class="help">Controleer de samenvatting. Beide spelers zetten hun eigen handtekening. Hoogste break is de hoogste serie in één beurt (0–147, tot 155 bij free ball).</p>
+            <div class="review" id="wiz-review"></div>
+            <div class="grid">
+              <label>Break speler 1 <input name="break1" type="number" min="0" max="155" value="0" /></label>
+              <label>Break speler 2 <input name="break2" type="number" min="0" max="155" value="0" /></label>
+              <label>Scheidsrechter <input name="referee" maxlength="80" /></label>
+              <label>Notitie <input name="note" maxlength="200" placeholder="Century, re-rack, …" /></label>
+            </div>
+            <div class="sign-grid" id="sign-block">
+              <div class="sign-block">
+                <p class="label">Handtekening <span id="sign1-name">speler 1</span></p>
+                <canvas id="sign1" width="640" height="180"></canvas>
+                <button type="button" class="ghost" id="sign1-clear">Wissen</button>
+              </div>
+              <div class="sign-block">
+                <p class="label">Handtekening <span id="sign2-name">speler 2</span></p>
+                <canvas id="sign2" width="640" height="180"></canvas>
+                <button type="button" class="ghost" id="sign2-clear">Wissen</button>
+              </div>
+            </div>
+          </section>
+
+          <p class="err" id="form-err" hidden></p>
+          <div class="wizard-nav">
+            <button type="button" class="ghost" id="wiz-back" hidden>Terug</button>
+            <button type="button" id="wiz-next">Volgende</button>
+            <button type="submit" id="wiz-save" hidden>Uitslag opslaan</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+  <datalist id="tournaments"></datalist>
+</div>
+  <script src="/webhost/snooker/theme.js"></script>
+  <script src="/webhost/snooker/guest.js"></script>
+</body>
+</html>

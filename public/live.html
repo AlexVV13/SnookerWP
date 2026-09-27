@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snooker live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --accent:#2ea85a; --gold:#f0b429; --ink:#1d2a22; --muted:#5b6d61; }
+    html, body { margin:0; background:var(--bg,#f3f7f0); color:var(--ink); font-family:Inter,Segoe UI,sans-serif; }
+    .box { padding:18px; }
+    .kicker { letter-spacing:.08em; text-transform:uppercase; font-size:11px; color:var(--gold); margin:0 0 6px; }
+    h1 { margin:0 0 12px; font-size:24px; letter-spacing:-.03em; }
+    .grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .card { background:#fff; border:1px solid rgba(22,53,36,.1); border-radius:14px; padding:12px; box-shadow:0 10px 24px rgba(22,53,36,.06); }
+    .big { font-size:28px; margin:4px 0; letter-spacing:-.04em; }
+    .muted { color:var(--muted); font-size:13px; }
+    .row { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid rgba(22,53,36,.08); }
+    .podium { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+    .seat { text-align:center; }
+    @media (max-width:720px) { .grid, .podium { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <p class="kicker" id="club">Snookerclub</p>
+    <h1>Live clubavond</h1>
+    <div class="grid">
+      <div class="card"><p class="muted">Hoogste break</p><p class="big" id="break">—</p><p class="muted" id="break-who"></p></div>
+      <div class="card"><p class="muted">Laatste stand</p><p class="big" id="latest-score">—</p><p class="muted" id="latest-who"></p></div>
+      <div class="card"><p class="muted">Centuries</p><p class="big" id="centuries">—</p><p class="muted" id="players-count"></p></div>
+    </div>
+    <div class="card" style="margin-top:12px" id="recent"></div>
+    <div class="podium" id="podium"></div>
+  </div>
+  <script src="/webhost/snooker/theme.js"></script>
+  <script>
+    const BASE = location.pathname.replace(/\/live\/?$/, '') || '/webhost/snooker';
+    function trophy(kind) {
+      const fill = { gold:'#e4c25a', silver:'#c5cdd4', bronze:'#c47a3a' }[kind] || '#e4c25a';
+      return '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="'+fill+'" d="M7 3h10v2h3a1 1 0 0 1 1 1v2a5 5 0 0 1-4.1 4.9A6 6 0 0 1 13 16.9V18h3v2H8v-2h3v-1.1A6 6 0 0 1 7.1 12.9 5 5 0 0 1 3 8V6a1 1 0 0 1 1-1h3z"/></svg> ';
+    }
+    async function refresh() {
+      const data = await (await fetch(BASE + '/api/public/live')).json();
+      if (window.SnookerTheme) window.SnookerTheme.apply(data.brand);
+      else {
+        document.documentElement.style.setProperty('--accent', data.brand.accent);
+        document.documentElement.style.setProperty('--gold', data.brand.accentSoft);
+      }
+      document.getElementById('club').textContent = data.brand.clubName;
+      document.getElementById('break').textContent = data.highestBreak?.value || '—';
+      document.getElementById('break-who').textContent = data.highestBreak?.player || 'Nog geen breaks';
+      const latest = data.latest;
+      document.getElementById('latest-score').textContent = latest ? (latest.wins.p1 + '–' + latest.wins.p2) : '—';
+      document.getElementById('latest-who').textContent = latest
+        ? (latest.winner ? latest.winner + ' wint · ' : '') + latest.player1 + ' — ' + latest.player2
+        : 'Nog geen wedstrijd';
+      document.getElementById('centuries').textContent = String(data.centuries || 0);
+      const progress = data.kpis?.progress || {};
+      document.getElementById('players-count').textContent = data.nextEventLabel
+        ? data.nextEventLabel
+        : ((data.playerCount || 0) + ' spelers · ' + (progress.centuries?.value || 0) + ' van ' + (progress.centuries?.goal || 0) + ' centuries');
+      document.getElementById('recent').innerHTML = (data.recent || []).map((m) =>
+        '<div class="row"><span>' + (m.matchType ? m.matchType + ' · ' : '') + m.player1 + ' — ' + m.player2 +
+        (m.table ? ' · ' + m.table : '') +
+        (m.framesPlayed ? ' · HC ' + Number(m.handicap1 || 0).toFixed(1) + '/' + Number(m.handicap2 || 0).toFixed(1) : '') +
+        '</span><strong>' + m.wins.p1 + '–' + m.wins.p2 + '</strong></div>'
+      ).join('') || '<p class="muted">Nog geen uitslagen.</p>';
+      document.getElementById('podium').innerHTML = (data.top3 || []).map((p) =>
+        '<div class="card seat">' + trophy(p.trophy) + '<strong>' + p.name + '</strong><div class="muted">' + p.points + ' ptn · HC ' + (p.framesPlayed ? Number(p.handicap || 0).toFixed(1) : '—') + '</div></div>'
+      ).join('');
+    }
+    refresh();
+    setInterval(refresh, 15000);
+  </script>
+</body>
+</html>

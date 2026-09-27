@@ -1,0 +1,33 @@
+{
+  "apiVersion": 3,
+  "name": "snookerclub/board",
+  "title": "Snookerclub",
+  "category": "widgets",
+  "icon": "awards",
+  "description": "Zet ranking, uitslagen, agenda of invoer op een pagina. Volgt het WordPress-thema of het clubdashboard.",
+  "keywords": ["snooker", "club", "ranking", "uitslagen", "agenda"],
+  "textdomain": "snookerclub",
+  "attributes": {
+    "view": {
+      "type": "string",
+      "default": "ranking",
+      "enum": ["app", "ingeven", "live", "ranking", "players", "results", "agenda", "kpis", "break", "next", "rapport", "dossier", "h2h"]
+    },
+    "skin": {
+      "type": "string",
+      "default": "site",
+      "enum": ["site", "club"]
+    },
+    "limit": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"]
+  },
+  "style": "snookerclub-board",
+  "editorStyle": "snookerclub-board",
+  "render": "file:./render.php"
+}

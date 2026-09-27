@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="nl" class="snooker-app-page">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Clubbeheer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/webhost/snooker/admin.css" />
+</head>
+<body class="snooker-app-page">
+<div class="snooker-app snooker-app--admin">
+  <aside class="side">
+    <a class="brand" href="/webhost">
+      <span class="brand-mark"></span>
+      <span>
+        <strong id="side-club">SC De Merodesnookers</strong>
+        <small>Clubbeheer</small>
+      </span>
+    </a>
+    <nav>
+      <button type="button" data-tab="home" class="on">Overzicht</button>
+      <button type="button" data-tab="matches">Uitslagen</button>
+      <button type="button" data-tab="excel">Papier / Excel</button>
+      <button type="button" data-tab="players">Spelers</button>
+      <button type="button" data-tab="agenda">Agenda</button>
+      <button type="button" data-tab="brand">Club</button>
+      <button type="button" data-tab="live">Liveblok</button>
+    </nav>
+    <div class="side-foot">
+      <div class="version">
+        <strong id="app-version">v—</strong>
+        <span id="app-revision">build laden…</span>
+      </div>
+      <a href="/webhost/snooker/">Guest app</a>
+      <a href="/webhost">Portaal</a>
+    </div>
+  </aside>
+
+  <div class="app">
+    <header class="bar">
+      <div>
+        <p class="eyebrow">Clubbeheer</p>
+        <h1 id="page-title">Dashboard</h1>
+      </div>
+      <div class="bar-meta">
+        <span class="chip" id="who">Laden…</span>
+        <a class="btn ghost" href="/webhost/desk">Instellingen</a>
+      </div>
+    </header>
+    <p class="banner err" id="auth-err" hidden></p>
+    <p class="banner ok" id="toast" hidden></p>
+
+    <section id="tab-home" class="pane">
+      <div class="kpis">
+        <article class="kpi">
+          <p>Deze maand</p>
+          <strong id="kpi-matches">—</strong>
+          <span id="kpi-matches-sub">Nog geen data</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-month-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Deze week</p>
+          <strong id="kpi-week">—</strong>
+          <span id="kpi-today">Inclusief vandaag</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-week-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Actieve spelers</p>
+          <strong id="kpi-active">—</strong>
+          <span id="kpi-roster">Op de clublijst</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-active-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Hoogste break</p>
+          <strong id="kpi-break">—</strong>
+          <span id="kpi-break-sub">—</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-break-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Frames deze maand</p>
+          <strong id="kpi-frames">—</strong>
+          <span id="kpi-frames-sub">Zonder lege 0–0</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-frames-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Gem. handicap</p>
+          <strong id="kpi-hc">—</strong>
+          <span>Over gespeelde frames</span>
+        </article>
+        <article class="kpi">
+          <p>Centuries</p>
+          <strong id="kpi-centuries">—</strong>
+          <span id="kpi-close">Nipte partijen</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-centuries-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Laatste stand</p>
+          <strong id="kpi-latest">—</strong>
+          <span id="kpi-latest-sub">—</span>
+        </article>
+        <article class="kpi">
+          <p>Nieuwe leden</p>
+          <strong id="kpi-members">—</strong>
+          <span id="kpi-members-sub">Deze maand</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-members-bar"></span></div>
+        </article>
+        <article class="kpi">
+          <p>Clubavonden</p>
+          <strong id="kpi-nights">—</strong>
+          <span id="kpi-nights-sub">Deze maand</span>
+          <div class="meter" aria-hidden="true"><span id="kpi-nights-bar"></span></div>
+        </article>
+      </div>
+      <div class="split">
+        <section class="card">
+          <div class="card-head">
+            <h2>Recente uitslagen</h2>
+            <button type="button" class="btn ghost" data-tab="matches">Alles</button>
+          </div>
+          <div id="home-recent" class="list"></div>
+        </section>
+        <div>
+          <section class="card">
+            <div class="card-head"><h2>Snel naar</h2></div>
+            <div class="quick">
+              <a href="/webhost/snooker/#wedstrijd">Nieuwe uitslag invoeren</a>
+              <button type="button" data-tab="excel">Papieruitslag of dossier</button>
+              <button type="button" data-tab="players">Spelerslijst beheren</button>
+              <button type="button" data-tab="agenda">Maandagenda beheren</button>
+              <button type="button" data-tab="brand">Clubnaam en kleuren</button>
+              <button type="button" data-tab="live">Elementor-snippet</button>
+              <a href="/webhost/snooker/live" target="_blank" rel="noreferrer">Liveblok openen</a>
+              <a href="/webhost/snooker/live/players" target="_blank" rel="noreferrer">Spelersblok openen</a>
+              <a href="/webhost/snooker/live/agenda" target="_blank" rel="noreferrer">Agenda-iframe openen</a>
+            </div>
+          </section>
+          <section class="card" style="margin-top:12px">
+            <div class="card-head"><h2>Systeem</h2></div>
+            <div class="system">
+              <div>Versie <span id="sys-version">—</span></div>
+              <div>Revisie <span id="sys-revision">—</span></div>
+              <div>Node <span id="sys-node">—</span></div>
+              <div>Omgeving <span id="sys-env">—</span></div>
+              <div>Uptime <span id="sys-uptime">—</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-matches" class="pane" hidden>
+      <section class="card">
+        <div class="card-head">
+          <h2>Wedstrijden</h2>
+          <input id="match-filter" type="search" placeholder="Zoek speler of toernooi" />
+        </div>
+        <div id="match-table" class="table-wrap"></div>
+      </section>
+      <form id="edit-form" class="card edit" hidden>
+        <div class="card-head">
+          <h2>Wedstrijd aanpassen</h2>
+          <button type="button" class="btn ghost" id="edit-cancel">Sluiten</button>
+        </div>
+        <input type="hidden" name="id" />
+        <div class="grid">
+          <label>Toernooi <input name="tournament" required /></label>
+          <label>Datum <input type="date" name="date" required /></label>
+          <label>Speler 1
+            <select name="player1" required>
+              <option value="">Kies speler</option>
+            </select>
+          </label>
+          <label>Speler 2
+            <select name="player2" required>
+              <option value="">Kies speler</option>
+            </select>
+          </label>
+          <label>Break 1 <input name="break1" type="number" min="0" max="155" /></label>
+          <label>Break 2 <input name="break2" type="number" min="0" max="155" /></label>
+          <label>Soort
+            <select name="matchType">
+              <option value="competitie">Competitie</option>
+              <option value="vriendschappelijk">Vriendschappelijk</option>
+              <option value="beker">Beker</option>
+              <option value="finale">Finale</option>
+              <option value="potblack">Potblack</option>
+              <option value="ranking">Rankingtornooi</option>
+              <option value="handicap">Handicaptornooi</option>
+              <option value="6red">6 Red</option>
+              <option value="open">Open Merode</option>
+            </select>
+          </label>
+          <label>Baan <input name="table" /></label>
+          <label>Scheidsrechter <input name="referee" /></label>
+          <label>Seizoen <input name="season" placeholder="2016-2017" /></label>
+          <label>Ronde
+            <input name="round" list="round-names" placeholder="kwart finale" />
+          </label>
+          <label>Notitie <input name="note" /></label>
+        </div>
+        <p class="muted" id="edit-hc">Handicap is het gemiddelde van de gespeelde frames. Lege 0–0 frames tellen niet mee.</p>
+        <div id="edit-frames" class="frames"></div>
+        <div class="sign-view" id="edit-signs">
+          <p class="muted">Handtekeningen van beide spelers</p>
+          <div class="sign-thumbs" id="edit-sign-thumbs"></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn">Wijzigingen opslaan</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="tab-excel" class="pane" hidden>
+      <div class="split">
+        <section class="card">
+          <div class="card-head"><h2>Papieruitslag</h2></div>
+          <p class="muted">Zoals vroeger op papier: tegenstander, toernooi, frames, break, ronde en seizoen. Geen handtekeningen nodig. Frames als 2–1 volstaan; punten per frame zijn optioneel.</p>
+          <form id="paper-form" class="grid">
+            <label>Speler
+              <select name="player1" required>
+                <option value="">Kies speler</option>
+              </select>
+            </label>
+            <label>Tegenstander
+              <select name="player2" required>
+                <option value="">Kies tegenstander</option>
+              </select>
+            </label>
+            <label>Toernooi <input name="tournament" required maxlength="80" placeholder="Snookertronooi 1" /></label>
+            <label>Datum <input type="date" name="date" required /></label>
+            <label>Frames voor <input name="framesFor" type="number" min="0" max="17" required /></label>
+            <label>Frames tegen <input name="framesAgainst" type="number" min="0" max="17" required /></label>
+            <label>Break speler <input name="break1" type="number" min="0" max="155" value="0" /></label>
+            <label>Break tegenstander <input name="break2" type="number" min="0" max="155" value="0" /></label>
+            <label>Ronde
+              <input name="round" list="round-names" placeholder="kwart finale" />
+            </label>
+            <label>Seizoen <input name="season" placeholder="wordt uit de datum gehaald" /></label>
+            <label>Soort
+              <select name="matchType">
+                <option value="competitie">Competitie</option>
+                <option value="vriendschappelijk">Vriendschappelijk</option>
+                <option value="beker">Beker</option>
+                <option value="finale">Finale</option>
+                <option value="potblack">Potblack</option>
+                <option value="ranking">Rankingtornooi</option>
+                <option value="handicap">Handicaptornooi</option>
+                <option value="6red">6 Red</option>
+                <option value="open">Open Merode</option>
+              </select>
+            </label>
+            <label>Baan <input name="table" maxlength="40" /></label>
+            <div class="actions wide">
+              <button type="submit" class="btn">Papieruitslag opslaan</button>
+            </div>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>Excel-import</h2></div>
+          <p class="muted">Plak een log zoals snippet 2: VERSUS; TOURNAMENT; RESULT; W; L; BREAKS; ROUND; SEASON. Ontbrekende namen komen op de clublijst.</p>
+          <form id="paper-import-form">
+            <label>Speler van dit blad
+              <select name="player">
+                <option value="">Staat in de CSV-kolom Speler</option>
+              </select>
+            </label>
+            <label class="wide">CSV
+              <textarea name="csv" rows="8" placeholder="VERSUS;TOURNAMENT;RESULT;W;L;BREAKS;ROUND;SEASON"></textarea>
+            </label>
+            <div class="actions">
+              <button type="submit" class="btn">Regels importeren</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:12px">
+        <div class="card-head">
+          <h2>Ranglijst (Excel)</h2>
+          <button type="button" class="btn ghost" id="excel-ranking-csv">Download CSV</button>
+        </div>
+        <div id="excel-ranking" class="table-wrap"></div>
+      </section>
+
+      <div class="split" style="margin-top:12px">
+        <section class="card">
+          <div class="card-head">
+            <h2>Spelersdossier</h2>
+            <button type="button" class="btn ghost" id="excel-dossier-csv">Download dossier</button>
+          </div>
+          <label>Speler
+            <select id="dossier-player">
+              <option value="">Kies speler</option>
+            </select>
+          </label>
+          <div id="dossier-career" class="career-grid" hidden></div>
+          <div id="dossier-table" class="table-wrap" style="margin-top:12px"></div>
+        </section>
+        <section class="card">
+          <div class="card-head">
+            <h2>Head-to-head</h2>
+            <button type="button" class="btn ghost" id="excel-h2h-csv">Download H2H</button>
+          </div>
+          <div class="grid">
+            <label>Speler A
+              <select id="h2h-a">
+                <option value="">Kies speler</option>
+              </select>
+            </label>
+            <label>Speler B
+              <select id="h2h-b">
+                <option value="">Kies tegenstander</option>
+              </select>
+            </label>
+          </div>
+          <div id="h2h-summary" class="career-grid" hidden></div>
+          <div id="h2h-table" class="table-wrap" style="margin-top:12px"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="tab-players" class="pane" hidden>
+      <section class="card">
+        <div class="card-head"><h2>Spelers</h2></div>
+        <p class="muted">Alleen deze namen verschijnen in de dropdown bij een uitslag.</p>
+        <form id="player-form" class="grid">
+          <label>Nieuwe speler <input name="name" required maxlength="80" placeholder="Voor- en achternaam" /></label>
+          <div class="actions" style="margin-top:26px">
+            <button type="submit" class="btn">Speler toevoegen</button>
+          </div>
+        </form>
+        <div id="roster-table" class="table-wrap" style="margin-top:16px"></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>Ranglijst</h2></div>
+        <div id="player-table" class="table-wrap"></div>
+      </section>
+    </section>
+
+    <section id="tab-agenda" class="pane" hidden>
+      <div class="split">
+        <section class="card">
+          <div class="card-head">
+            <h2 id="agenda-label">Agenda</h2>
+            <div class="bar-meta">
+              <button type="button" class="btn ghost" id="agenda-prev">Vorige</button>
+              <button type="button" class="btn ghost" id="agenda-today">Deze maand</button>
+              <button type="button" class="btn ghost" id="agenda-next">Volgende</button>
+            </div>
+          </div>
+          <div class="cal-weekdays" id="agenda-weekdays"></div>
+          <div class="cal-grid" id="agenda-grid"></div>
+          <div id="agenda-list" class="list" style="margin-top:16px"></div>
+        </section>
+        <section class="card">
+          <div class="card-head">
+            <h2 id="event-form-title">Nieuw item</h2>
+            <button type="button" class="btn ghost" id="event-reset">Leegmaken</button>
+          </div>
+          <p class="muted">Zet clubavonden, toernooien of lessen in de maand. Bezoekers zien die in de guest-app en via het iframe.</p>
+          <form id="event-form" class="grid">
+            <input type="hidden" name="id" />
+            <label class="wide">Titel <input name="title" required maxlength="80" placeholder="Clubavond" /></label>
+            <label>Datum <input type="date" name="date" required /></label>
+            <label>Soort
+              <select name="kind">
+                <option value="clubavond">Clubavond</option>
+                <option value="toernooi">Toernooi</option>
+                <option value="les">Les</option>
+                <option value="overig">Overig</option>
+              </select>
+            </label>
+            <label>Start <input type="time" name="start" /></label>
+            <label>Einde <input type="time" name="end" /></label>
+            <label class="wide">Locatie <input name="place" maxlength="80" placeholder="Baan 1–4" /></label>
+            <label class="wide">Notitie <input name="note" maxlength="200" /></label>
+            <div class="actions wide">
+              <button type="submit" class="btn">Opslaan</button>
+              <button type="button" class="btn danger" id="event-delete" hidden>Verwijderen</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="tab-brand" class="pane" hidden>
+      <form id="brand-form" class="split">
+        <section class="card">
+          <div class="card-head"><h2>Uitstraling</h2></div>
+          <div class="grid">
+            <fieldset class="wide theme-presets">
+              <legend>Thema</legend>
+              <label><input type="radio" name="themePreset" value="baize" /> Baize</label>
+              <label><input type="radio" name="themePreset" value="midnight" /> Nacht</label>
+              <label><input type="radio" name="themePreset" value="ivory" /> Ivoor</label>
+              <label><input type="radio" name="themePreset" value="classic" /> Club</label>
+              <label><input type="radio" name="themePreset" value="ruby" /> Ruby</label>
+              <label><input type="radio" name="themePreset" value="custom" /> Eigen kleuren</label>
+            </fieldset>
+            <label>Clubnaam <input name="clubName" required maxlength="80" placeholder="SC De Merodesnookers" /></label>
+            <label>Tagline <input name="tagline" maxlength="160" /></label>
+            <label>Frames per partij
+              <select name="framesCount">
+                <option value="1">Best of 1</option>
+                <option value="3">Best of 3</option>
+                <option value="5" selected>Best of 5</option>
+                <option value="7">Best of 7</option>
+                <option value="9">Best of 9</option>
+                <option value="11">Best of 11</option>
+                <option value="17">Best of 17</option>
+              </select>
+            </label>
+            <label>Accentkleur <input name="accent" type="color" /></label>
+            <label>Tweede kleur <input name="accentSoft" type="color" /></label>
+            <label>Achtergrond <input name="bg" type="color" /></label>
+            <label>Balk <input name="bgSide" type="color" /></label>
+            <label>Tekst <input name="ink" type="color" /></label>
+            <label>Lettertype
+              <select name="font">
+                <option value="club">Club (Nunito / Inter)</option>
+                <option value="system">Systeem</option>
+                <option value="serif">Schreef</option>
+              </select>
+            </label>
+            <label>Hoeken
+              <select name="radius">
+                <option value="snug">Strak</option>
+                <option value="club">Club</option>
+                <option value="round">Rond</option>
+              </select>
+            </label>
+            <label>Dichtheid
+              <select name="density">
+                <option value="comfortable">Ruim</option>
+                <option value="compact">Compact</option>
+              </select>
+            </label>
+            <label class="wide">Logo-URL <input name="logoUrl" placeholder="https://…/logo.png" /></label>
+            <p class="muted" id="logo-hint">Het logo staat in de kop van de clubapp, het beheer en de liveblokken.</p>
+            <label class="wide">Achtergrond-URL <input name="heroUrl" placeholder="/webhost/snooker/hero.jpg" /></label>
+            <label class="wide">Achtergrond uploaden (JPG/PNG)
+              <input id="hero-file" type="file" accept="image/jpeg,image/png" />
+            </label>
+            <label class="wide">Clubbericht <input name="notice" maxlength="240" /></label>
+            <label>Locatie <input name="venue" maxlength="120" /></label>
+            <label>Openingstijden <input name="openingHours" maxlength="120" /></label>
+            <label class="wide">Volgende avond (losse regel) <input name="nextEvent" maxlength="160" /></label>
+            <label>Maanddoel wedstrijden <input name="goalMatchesMonth" type="number" min="1" max="200" /></label>
+            <label>Weekdoel wedstrijden <input name="goalMatchesWeek" type="number" min="1" max="50" /></label>
+            <label>Maanddoel frames <input name="goalFramesMonth" type="number" min="1" max="500" /></label>
+            <label>Doel centuries <input name="goalCenturies" type="number" min="1" max="50" /></label>
+            <label>Maanddoel nieuwe leden <input name="goalNewMembersMonth" type="number" min="1" max="80" /></label>
+            <label>Maanddoel clubavonden <input name="goalClubNightsMonth" type="number" min="1" max="40" /></label>
+            <label class="wide">Toernooien (één per regel)
+              <textarea name="tournaments" rows="5"></textarea>
+            </label>
+            <label class="check wide"><input type="checkbox" name="showSignatures" /> Handtekeningen van beide spelers tonen bij bezoekers</label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn">Club opslaan</button>
+          </div>
+        </section>
+        <section class="card preview">
+          <div class="card-head"><h2>Voorbeeld</h2></div>
+          <div class="brand-preview" id="brand-preview">
+            <p class="eyebrow" id="preview-kicker">SC De Merodesnookers</p>
+            <h3 id="preview-name">SC De Merodesnookers</h3>
+            <p id="preview-tag">Uitslagen, breaks en live op de clubsite.</p>
+          </div>
+        </section>
+      </form>
+    </section>
+
+    <section id="tab-live" class="pane" hidden>
+      <div class="split">
+        <section class="card">
+          <div class="card-head"><h2>Elementor</h2></div>
+          <p class="muted">Plak een blok in een HTML-widget. Het iframe is het eenvoudigst.</p>
+          <label>Uitslagen iframe
+            <textarea id="embed-iframe" rows="4" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-iframe">Kopieer uitslagen-iframe</button>
+          <label>Uitslagen script
+            <textarea id="embed-script" rows="3" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-script">Kopieer uitslagen-script</button>
+          <label>Spelerslijst iframe
+            <textarea id="embed-players-iframe" rows="4" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-players-iframe">Kopieer spelers-iframe</button>
+          <label>Spelerslijst script
+            <textarea id="embed-players-script" rows="3" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-players-script">Kopieer spelers-script</button>
+          <label>Agenda iframe
+            <textarea id="embed-agenda-iframe" rows="4" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-agenda-iframe">Kopieer agenda-iframe</button>
+          <label>Agenda script
+            <textarea id="embed-agenda-script" rows="3" readonly></textarea>
+          </label>
+          <button type="button" class="btn ghost" data-copy="embed-agenda-script">Kopieer agenda-script</button>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>Voorvertoning</h2></div>
+          <div class="preview-stack">
+            <article class="preview-block">
+              <div class="card-head">
+                <p class="eyebrow">Uitslagen</p>
+                <a id="live-preview" class="btn ghost" href="/webhost/snooker/live" target="_blank" rel="noreferrer">Nieuw tabblad</a>
+              </div>
+              <iframe id="live-frame" class="live-frame" title="Uitslagen iframe" src="/webhost/snooker/live"></iframe>
+            </article>
+            <article class="preview-block">
+              <div class="card-head">
+                <p class="eyebrow">Spelerslijst</p>
+                <a id="players-preview" class="btn ghost" href="/webhost/snooker/live/players" target="_blank" rel="noreferrer">Nieuw tabblad</a>
+              </div>
+              <iframe id="players-frame" class="live-frame live-frame-players" title="Spelerslijst iframe" src="/webhost/snooker/live/players"></iframe>
+            </article>
+            <article class="preview-block">
+              <div class="card-head">
+                <p class="eyebrow">Agenda</p>
+                <a id="agenda-preview" class="btn ghost" href="/webhost/snooker/live/agenda" target="_blank" rel="noreferrer">Nieuw tabblad</a>
+              </div>
+              <iframe id="agenda-frame" class="live-frame live-frame-agenda" title="Agenda iframe" src="/webhost/snooker/live/agenda"></iframe>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+</div>
+  <datalist id="round-names">
+    <option value="8ste finale"></option>
+    <option value="kwart finale"></option>
+    <option value="halve finale"></option>
+    <option value="finale"></option>
+  </datalist>
+  <script src="/webhost/snooker/theme.js"></script>
+  <script src="/webhost/snooker/admin.js"></script>
+</body>
+</html>
