@@ -7,7 +7,6 @@ data/*
 !data/.gitkeep
 
 # Generated WordPress plugin zips
-public/plugin/
 wordpress/dist/
 
 # Logs and OS junk

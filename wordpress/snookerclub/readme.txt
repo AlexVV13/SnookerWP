@@ -1,12 +1,12 @@
 === Snookerclub ===
-Contributors: parkdata
+Contributors: Alex van Vught
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.9.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 
-Ranking, uitslagen, rapporten en invoer voor een snookerclub. Standaard klaar voor SC De Merodesnookers (Turnhout).
+Ranking, uitslagen, rapporten en invoer voor een snookerclub. Standaard geprepareerd voor SC De Merodesnookers (Turnhout).
 
 == Description ==
 

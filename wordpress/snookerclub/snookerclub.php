@@ -1,23 +1,23 @@
 <?php
 /**
  * Plugin Name: Snookerclub
- * Plugin URI: false
+ * Plugin URI: https://alexvvught.com/
  * Description: Ranking, uitslagen, rapporten en invoer als invoegbare templates — in het WordPress-thema of als clubdashboard.
- * Version: 1.9.0
+ * Version: 1.0.0
  * Requires at least: 6.2
  * Requires PHP: 8.1
- * Author: parkData
+ * Author: Alex van Vught
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: snookerclub
- * Update URI: false
+ * Update URI: https://alexvvught.com/webhost/snooker/api/public/wp-plugin
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SNOOKERCLUB_VERSION', '1.9.0');
+define('SNOOKERCLUB_VERSION', '1.0.0');
 define('SNOOKERCLUB_FILE', __FILE__);
 define('SNOOKERCLUB_DIR', plugin_dir_path(__FILE__));
 define('SNOOKERCLUB_URL', plugin_dir_url(__FILE__));
