@@ -74,8 +74,8 @@ assert(adminJs.includes('renderAppInfo') && adminJs.includes('kpis'), 'admin ren
 assert(dockerfile.includes('package-wp-plugin.js'), 'docker image bakes the wordpress plugin zip');
 assert(dockerfile.includes('HEALTHCHECK') && dockerfile.includes('org.opencontainers.image.version'), 'docker image is versioned and healthchecked');
 assert(compose.includes('healthcheck:') && compose.includes('no-new-privileges'), 'compose is production-shaped');
-assert(compose.includes('APP_VERSION: "1.0.2"') && compose.includes('webhost-snooker:1.0.2'), 'compose pins 1.0.2');
-assert(dockerfile.includes('ARG APP_VERSION=1.0.2'), 'docker default version is 1.0.2');
+assert(compose.includes('APP_VERSION: "1.0.3"') && compose.includes('webhost-snooker:1.0.3'), 'compose pins 1.0.3');
+assert(dockerfile.includes('ARG APP_VERSION=1.0.3'), 'docker default version is 1.0.3');
 assert(guestJs.includes('function applyLogo') && adminJs.includes('function applyLogo') && adminHtmlSrc.includes('id="side-club"'), 'logo and admin sidebar use the club brand');
 assert(guestJs.includes('Winst / frames') && adminJs.includes('Hoogste break') && !guestJs.includes('TOTAL PLATEAU'), 'dossier cards are Dutch');
 assert(fs.existsSync(path.join(root, '../.env.example')), 'env example documents host, path and data dir');
@@ -95,12 +95,14 @@ assert(guestJs.includes('SNOOKER_NONCE') && adminJs.includes('SNOOKER_NONCE'), '
 const pluginMain = fs.readFileSync(path.join(PLUGIN_DIR, 'snookerclub.php'), 'utf8');
 const pluginUpdater = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-updater.php'), 'utf8');
 const pluginApp = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-plugin.php'), 'utf8');
-assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.2', 'wp plugin header version');
+assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.3', 'wp plugin header version');
 assert(pluginMain.includes('Update URI:'), 'wp plugin declares an Update URI');
 assert(pluginUpdater.includes('pre_set_site_transient_update_plugins') && pluginUpdater.includes('auto_update_plugin'), 'wp plugin checks and auto-updates');
 assert(pluginUpdater.includes('DEFAULT_FEED') && pluginUpdater.includes('sync_wp_auto_update_flag') && pluginUpdater.includes('https_url'), 'updater uses default https feed and syncs WP auto-update');
+assert(pluginUpdater.includes('pre_download') && pluginUpdater.includes('allow_update_http_args') && pluginUpdater.includes('reject_unsafe_urls'), 'updater bypasses WP safe-download for same-server hosts');
 assert(pluginUpdater.includes('update_hosts') && pluginApp.includes('Nu op updates controleren'), 'updater registers Update URI hosts and has manual check');
-const insecureFeed = pluginManifest({ origin: 'http://club.example', base: '/webhost/snooker', version: '1.0.2' });
+assert(pluginApp.includes('snookerclub.zip') && pluginApp.includes('A valid URL was not provided'), 'settings explain manual zip when auto-update download fails');
+const insecureFeed = pluginManifest({ origin: 'http://club.example', base: '/webhost/snooker', version: '1.0.3' });
 assert(insecureFeed.package.startsWith('https://'), 'plugin feed package URL is always https');
 assert(pluginApp.includes('add_shortcode') && pluginApp.includes('snookerclub_live') && pluginApp.includes('snookerclub_ranking') && pluginApp.includes('snookerclub_rapport'), 'wp plugin has shortcodes');
 assert(fs.existsSync(path.join(PLUGIN_DIR, 'includes/class-templates.php')) && fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-templates.php'), 'utf8').includes('register_block_pattern'), 'wp plugin registers insertable patterns');
@@ -134,8 +136,8 @@ assert(guestJs.includes('function apiUrl') && guestJs.includes('SNOOKER_REST') &
 assert(embedJs.includes('SNOOKER_REST') && embedJs.includes('data-src'), 'embed uses REST or data-src');
 assert(guestCss.includes('snookerclub-embed--ingeven'), 'guest css scopes the host wizard');
 assert(guestHtmlSrc.includes('/webhost/snooker/theme.js') && guestJs.includes('SnookerTheme'), 'guest loads theme helper');
-const feed = pluginManifest({ origin: 'https://club.example', base: '/webhost/snooker', version: '1.0.2' });
-assert(feed.version === '1.0.2' && feed.package.endsWith('/plugin/snookerclub.zip'), 'update feed points at plugin zip');
+const feed = pluginManifest({ origin: 'https://club.example', base: '/webhost/snooker', version: '1.0.3' });
+assert(feed.version === '1.0.3' && feed.package.endsWith('/plugin/snookerclub.zip'), 'update feed points at plugin zip');
 assert(fs.existsSync(path.join(PLUGIN_DIR, 'includes/class-excel.php')), 'wp plugin has excel/paper stats');
 const php = spawnSync('php', [path.join(root, '../wordpress/tests/store-check.php')], { encoding: 'utf8' });
 assert(php.status === 0, `php store check: ${(php.stderr || php.stdout || '').trim()}`);

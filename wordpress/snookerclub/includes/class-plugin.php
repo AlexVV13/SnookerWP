@@ -1516,10 +1516,12 @@ class Snookerclub_Plugin {
         echo '<p class="description">WordPress-pagina: <code>' . $guest . '</code>. Bij activeren maakt de plugin deze pagina aan.</p></td></tr>';
         echo '<tr><th>Extra URL\'s</th><td><label><input type="checkbox" name="snookerclub_pretty_urls" value="1"' . checked($pretty, true, false) . ' /> Ook <code>/' . esc_html(self::slug()) . '/</code> als losse app-route (niet nodig voor shortcodes en blokken)</label></td></tr>';
         echo '<tr><th>Updatefeed</th><td><input name="snookerclub_update_url" value="' . $feed . '" class="large-text" placeholder="' . esc_attr(Snookerclub_Updater::DEFAULT_FEED) . '" />';
-        echo '<p class="description">Leeg = standaardfeed uit de plugin-header (<code>' . esc_html(Snookerclub_Updater::DEFAULT_FEED) . '</code>). JSON met <code>version</code> en <code>package</code> (https).</p>';
-        echo '<p><a class="button" href="' . esc_url($check) . '">Nu op updates controleren</a></p></td></tr>';
+        echo '<p class="description">Leeg = standaardfeed (<code>' . esc_html(Snookerclub_Updater::DEFAULT_FEED) . '</code>). JSON met <code>version</code> en https-<code>package</code>.</p>';
+        echo '<p><a class="button" href="' . esc_url($check) . '">Nu op updates controleren</a> ';
+        echo '<a class="button" href="https://alexvvught.com/webhost/snooker/plugin/snookerclub.zip">Download snookerclub.zip</a></p>';
+        echo '<p class="description">Lukt automatisch updaten niet (fout “A valid URL was not provided”)? Upload de zip één keer handmatig via Plugins → Nieuwe plugin → Uploaden. Daarna werken updates wel (same-server-download is gefixt in 1.0.3+).</p></td></tr>';
         echo '<tr><th>Automatisch bijwerken</th><td><label><input type="checkbox" name="snookerclub_auto_update" value="1"' . checked($auto, true, false) . ' /> Installeer nieuwe pluginversies automatisch</label>';
-        echo '<p class="description">Zet dit aan én zorg dat WordPress cron/automatische updates actief zijn. Bij een nieuwere feed-versie verschijnt de update onder <strong>Plugins</strong>.</p></td></tr>';
+        echo '<p class="description">Vereist werkende feed. WordPress-cron moet actief zijn. Na opslaan: Plugins → Controleren op updates.</p></td></tr>';
         echo '</table>';
         submit_button('Opslaan');
         echo '</form>';

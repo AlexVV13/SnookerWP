@@ -15,7 +15,9 @@ class Snookerclub_Updater {
         add_filter('pre_set_site_transient_update_plugins', [self::class, 'inject_update']);
         add_filter('plugins_api', [self::class, 'plugins_api'], 10, 3);
         add_filter('auto_update_plugin', [self::class, 'maybe_auto_update'], 10, 2);
-        add_filter('http_request_args', [self::class, 'prefer_https_package'], 10, 2);
+        add_filter('http_request_args', [self::class, 'allow_update_http_args'], 10, 2);
+        add_filter('http_request_host_is_external', [self::class, 'allow_update_host'], 10, 3);
+        add_filter('upgrader_pre_download', [self::class, 'pre_download'], 10, 3);
         foreach (self::update_hosts() as $host) {
             add_filter('update_plugins_' . $host, [self::class, 'host_update'], 10, 4);
         }
@@ -244,15 +246,148 @@ class Snookerclub_Updater {
         return self::auto_updates_enabled();
     }
 
-    /** WordPress may request the package over http; upgrade to https. */
-    public static function prefer_https_package($args, $url) {
-        if (!is_array($args) || !is_string($url)) {
+    public static function is_our_update_url($url): bool {
+        if (!is_string($url) || $url === '') {
+            return false;
+        }
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        if ($host === '') {
+            return false;
+        }
+        foreach (self::update_hosts() as $allowed) {
+            if ($host === strtolower($allowed)) {
+                return true;
+            }
+        }
+        return str_contains($url, 'snookerclub.zip') || str_contains($url, '/api/public/wp-plugin');
+    }
+
+    /**
+     * download_url() uses wp_safe_remote_get which always sets reject_unsafe_urls.
+     * On same-server installs alexvvught.com often resolves to loopback/private →
+     * "Download failed. A valid URL was not provided."
+     */
+    public static function allow_update_http_args($args, $url) {
+        if (!is_array($args) || !self::is_our_update_url($url)) {
             return $args;
         }
-        if (stripos($url, 'snookerclub.zip') === false && stripos($url, '/api/public/wp-plugin') === false) {
-            return $args;
-        }
+        $args['reject_unsafe_urls'] = false;
+        $args['timeout'] = max(30, (int) ($args['timeout'] ?? 30));
         return $args;
+    }
+
+    public static function allow_update_host($is_external, $host, $url = '') {
+        unset($url);
+        $host = strtolower((string) $host);
+        foreach (self::update_hosts() as $allowed) {
+            if ($host === strtolower($allowed)) {
+                return true;
+            }
+        }
+        return (bool) $is_external;
+    }
+
+    /**
+     * Bypass download_url()/wp_safe_remote_get for our package so same-server
+     * and DNS-to-loopback hosts can still fetch the zip.
+     *
+     * @param bool|WP_Error $reply
+     * @param string        $package
+     * @return string|bool|WP_Error Local temp file path on success.
+     */
+    public static function pre_download($reply, $package, $upgrader = null) {
+        unset($upgrader);
+        if ($reply !== false && !is_wp_error($reply)) {
+            return $reply;
+        }
+        if (!is_string($package) || $package === '' || !self::is_our_update_url($package)) {
+            return $reply;
+        }
+        $package = self::https_url($package);
+        if (!function_exists('wp_tempnam')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        $tmp = wp_tempnam('snookerclub.zip');
+        if (!$tmp) {
+            return new WP_Error('http_no_file', 'Kon geen tijdelijk bestand maken voor de plugin-update.');
+        }
+        $response = wp_remote_get($package, [
+            'timeout' => 300,
+            'redirection' => 5,
+            'stream' => true,
+            'filename' => $tmp,
+            'reject_unsafe_urls' => false,
+            'headers' => [
+                'Accept' => 'application/zip,application/octet-stream,*/*',
+            ],
+            'user-agent' => 'WordPress/' . get_bloginfo('version') . '; Snookerclub/' . (defined('SNOOKERCLUB_VERSION') ? SNOOKERCLUB_VERSION : '0'),
+        ]);
+        if (is_wp_error($response)) {
+            @unlink($tmp);
+            // Last resort: PHP streams without WP URL guards.
+            $raw = self::raw_download($package);
+            if (is_wp_error($raw)) {
+                return $raw;
+            }
+            if (file_put_contents($tmp, $raw) === false) {
+                @unlink($tmp);
+                return new WP_Error('http_no_file', 'Kon de plugin-zip niet opslaan.');
+            }
+            return $tmp;
+        }
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if ($code < 200 || $code >= 300) {
+            @unlink($tmp);
+            return new WP_Error('http_404', sprintf('Download mislukt (HTTP %d).', $code));
+        }
+        $size = file_exists($tmp) ? (int) filesize($tmp) : 0;
+        if ($size < 1000) {
+            @unlink($tmp);
+            return new WP_Error('http_404', 'Download mislukt: lege of ongeldige zip.');
+        }
+        return $tmp;
+    }
+
+    /** @return string|WP_Error */
+    public static function raw_download(string $url) {
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 15,
+                CURLOPT_TIMEOUT => 300,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_HTTPHEADER => ['Accept: application/zip,application/octet-stream,*/*'],
+                CURLOPT_USERAGENT => 'WordPress/' . get_bloginfo('version') . '; Snookerclub',
+            ]);
+            $body = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            if ($body === false || $code < 200 || $code >= 300) {
+                return new WP_Error('http_request_failed', $err !== '' ? $err : sprintf('Download mislukt (HTTP %d).', $code));
+            }
+            return $body;
+        }
+        $ctx = stream_context_create([
+            'http' => [
+                'timeout' => 300,
+                'follow_location' => 1,
+                'header' => "Accept: application/zip\r\n",
+                'user_agent' => 'WordPress/' . get_bloginfo('version') . '; Snookerclub',
+            ],
+            'ssl' => [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+            ],
+        ]);
+        $body = @file_get_contents($url, false, $ctx);
+        if ($body === false || strlen($body) < 1000) {
+            return new WP_Error('http_request_failed', 'Download mislukt via PHP streams.');
+        }
+        return $body;
     }
 
     public static function clear_cache($upgrader, $options): void {
@@ -266,7 +401,6 @@ class Snookerclub_Updater {
         delete_site_transient('snookerclub_update_feed');
         delete_site_transient('update_plugins');
         $feed = self::fetch_feed(true);
-        // Refresh WP update transient so Dashboard → Updates sees us.
         if (function_exists('wp_update_plugins')) {
             wp_update_plugins();
         }
