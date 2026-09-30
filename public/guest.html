@@ -144,34 +144,25 @@
         </ol>
         <form id="match-form">
           <section data-step="1">
-            <p class="help">Eerst de avond: welk toernooi, welke dag en waar speelden jullie?</p>
+            <p class="help">Eerst de avond: welk tornooi, welke dag, en hoeveel frames?</p>
             <div class="grid">
-              <label>Toernooi <input list="tournaments" name="tournament" required maxlength="80" placeholder="Clubavond" /></label>
+              <label>Tornooi <input list="tournaments" name="tournament" required maxlength="80" placeholder="Clubavond" /></label>
               <label>Datum <input type="date" name="date" required /></label>
-              <label>Soort
-                <select name="matchType">
-                  <option value="competitie">Competitie</option>
-                  <option value="vriendschappelijk">Vriendschappelijk</option>
-                  <option value="beker">Beker</option>
-                  <option value="finale">Finale</option>
-                  <option value="potblack">Potblack</option>
-                  <option value="ranking">Rankingtornooi</option>
-                  <option value="handicap">Handicaptornooi</option>
-                  <option value="6red">6 Red</option>
-                  <option value="open">Open Merode</option>
+              <label>Frames
+                <select name="frameFormat">
+                  <option value="bestof:1">1 frame</option>
+                  <option value="bestof:3">Best of 3</option>
+                  <option value="bestof:5" selected>Best of 5</option>
+                  <option value="bestof:7">Best of 7</option>
+                  <option value="bestof:9">Best of 9</option>
+                  <option value="fixed:2">2 frames (poule)</option>
+                  <option value="fixed:3">3 frames (poule / voorronde)</option>
+                  <option value="fixed:4">4 frames (poule)</option>
+                  <option value="fixed:5">5 frames (vast)</option>
                 </select>
               </label>
-              <label>Best of
-                <select name="bestOf">
-                  <option value="1">1 frame</option>
-                  <option value="3">Best of 3</option>
-                  <option value="5" selected>Best of 5</option>
-                  <option value="7">Best of 7</option>
-                  <option value="9">Best of 9</option>
-                </select>
-              </label>
-              <label>Baan / tafel <input name="table" maxlength="40" placeholder="Baan 1" /></label>
             </div>
+            <p class="sub" id="frame-format-hint">Best of = eerste die de meerderheid wint. Poule / voorronde = vast aantal frames (bijv. Kersttornooi: 3).</p>
           </section>
 
           <section data-step="2" hidden>
@@ -199,13 +190,12 @@
           </section>
 
           <section data-step="4" hidden>
-            <p class="help">Controleer de samenvatting. Beide spelers zetten hun eigen handtekening. Hoogste break is de hoogste serie in één beurt (0–147, tot 155 bij free ball).</p>
+            <p class="help" id="finish-help">Controleer de samenvatting. Hoogste break is de hoogste serie in één beurt (0–147, tot 155 bij free ball).</p>
             <div class="review" id="wiz-review"></div>
             <div class="grid">
               <label>Break speler 1 <input name="break1" type="number" min="0" max="155" value="0" /></label>
               <label>Break speler 2 <input name="break2" type="number" min="0" max="155" value="0" /></label>
-              <label>Scheidsrechter <input name="referee" maxlength="80" /></label>
-              <label>Notitie <input name="note" maxlength="200" placeholder="Century, re-rack, …" /></label>
+              <label class="wide">Notitie <input name="note" maxlength="200" placeholder="Century, re-rack, …" /></label>
             </div>
             <div class="sign-grid" id="sign-block">
               <div class="sign-block">

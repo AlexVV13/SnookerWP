@@ -6,7 +6,9 @@ Gebaseerd op de **WPBSA**-regels (Snooker Vlaanderen / provincie Antwerpen spele
 
 - Een **frame** wint wie de meeste punten heeft (inclusief fouls). Gelijkspel in een frame komt in clubdata zelden voor; beide kanten gelijk telt als gelijk.
 - **0–0** is niet gespeeld en telt niet mee voor het punten gemiddelde.
-- Een **partij** is best-of-N frames (1, 3, 5, 7, 9, …). Open Merode: poules 2 of 3 frames, daarna best of 5/7, finale best of 9.
+- Een **partij** is **best of** N frames (1, 3, 5, 7, 9, …) óf een **vast aantal** frames voor poules/voorrondes.
+- **Poule / voorronde** (bijv. Kersttornooi): vaak **3 frames vast** — dat is geen best of 3. Kies in de invoer “3 frames (poule / voorronde)”.
+- Open Merode: poules 2 of 3 frames (vast), daarna best of 5/7, finale best of 9.
 - **W / L** volgen de frames: meer frames gewonnen = wedstrijdwinst.
 - **F+ / F−** tellen elk gewonnen/verloren frame, uit getekende partijen én papieruitslagen.
 

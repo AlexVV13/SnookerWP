@@ -323,7 +323,9 @@ class Snookerclub_Render {
         foreach ($agenda['upcoming'] ?? [] as $event) {
             $time = implode('–', array_filter([$event['start'] ?? '', $event['end'] ?? '']));
             $upcoming .= '<div class="snooker-live-row"><span>' . self::esc($event['kindLabel'] ?? $event['kind'] ?? '')
-                . ' · ' . self::esc($event['title'] ?? '') . '</span><strong>'
+                . ' · ' . self::esc($event['title'] ?? '')
+                . (!empty($event['tournament']) ? ' · ' . self::esc($event['tournament']) : '')
+                . '</span><strong>'
                 . self::esc($event['date'] ?? '') . ($time !== '' ? ' · ' . self::esc($time) : '') . '</strong></div>';
         }
         if ($upcoming === '') {
@@ -346,7 +348,7 @@ class Snookerclub_Render {
             $kind = self::trophy_kind($player, $index);
             $html .= '<article class="snooker-seat ' . esc_attr($kind) . '" role="listitem">'
                 . self::trophy($kind)
-                . '<strong>' . self::esc($player['name'] ?? '') . '</strong>'
+                . '<strong class="snooker-seat-name">' . self::esc($player['name'] ?? '') . '</strong>'
                 . '<p>' . (int) ($player['points'] ?? 0) . ' ptn · HC ' . self::esc(self::hc($player)) . '</p></article>';
         }
         return $html . '</div>';
@@ -370,7 +372,7 @@ class Snookerclub_Render {
                 . '<td class="name">' . self::trophy($kind) . self::esc($player['name'] ?? '') . '</td>'
                 . '<td class="num">' . (int) ($player['wins'] ?? 0) . '</td>'
                 . '<td class="num">' . (int) ($player['losses'] ?? 0) . '</td>'
-                . '<td class="num">' . (int) ($player['framesFor'] ?? 0) . '</td>'
+                . '<td class="num col-fplus">' . (int) ($player['framesFor'] ?? 0) . '</td>'
                 . '<td class="num">' . (int) ($player['framesAgainst'] ?? 0) . '</td>'
                 . '<td class="num">' . self::esc($match_pct) . '</td>'
                 . '<td class="num">' . self::esc($frame_pct) . '</td>'
@@ -382,7 +384,7 @@ class Snookerclub_Render {
             return '<p class="snooker-live-muted">Nog geen spelers. Open Snookerclub → Clubbeheer en voeg namen toe.</p>';
         }
         return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table">'
-            . '<thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead>'
+            . '<thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead>'
             . '<tbody>' . $rows . '</tbody></table></div>';
     }
 

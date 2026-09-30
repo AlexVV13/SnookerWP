@@ -228,7 +228,10 @@ export function createApp({
 
   router.post('/api/matches', guestLimit, async (req, res) => {
     try {
-      const match = await store.createMatch(req.body || {});
+      const brand = await store.getBrand();
+      const match = await store.createMatch(req.body || {}, {
+        requireSignatures: brand.showSignatures !== false,
+      });
       res.status(201).json({
         match,
         wins: match.wins || frameWins(match.frames),

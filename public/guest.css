@@ -127,10 +127,12 @@ h3 { font-size: 20px; }
   border-radius: 16px;
   padding: 14px;
   text-align: center;
+  color: var(--ink, #1d2a22);
 }
-.seat.gold { box-shadow: inset 0 0 0 2px #e4c25a; background: #fff8e0; }
-.seat.silver { background: #eef3f6; }
-.seat.bronze { background: #f8e6d4; }
+.seat.gold { box-shadow: inset 0 0 0 2px #e4c25a; background: #fff8e0; color: #1d2a22; }
+.seat.silver { background: #eef3f6; color: #1d2a22; }
+.seat.bronze { background: #f8e6d4; color: #1d2a22; }
+.seat strong { color: inherit; opacity: 1; font-weight: 700; }
 .trophy { display: inline-block; width: 22px; height: 22px; vertical-align: -5px; margin-right: 4px; }
 .table-wrap { overflow: auto; }
 .career-grid {

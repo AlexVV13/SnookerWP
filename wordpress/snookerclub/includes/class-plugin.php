@@ -1405,8 +1405,9 @@ class Snookerclub_Plugin {
                 'openingHours' => sanitize_text_field(wp_unslash($_POST['openingHours'] ?? '')),
                 'notice' => sanitize_text_field(wp_unslash($_POST['notice'] ?? '')),
                 'nextEvent' => sanitize_text_field(wp_unslash($_POST['nextEvent'] ?? '')),
-                'framesCount' => (int) ($_POST['framesCount'] ?? 5),
+                'frameFormat' => sanitize_text_field(wp_unslash($_POST['frameFormat'] ?? 'bestof:5')),
                 'tournaments' => array_values(array_filter(array_map('sanitize_text_field', $tournaments ?: []))),
+                'showSignatures' => !empty($_POST['showSignatures']),
             ]);
             self::sync_app_page_title((string) ($brand['clubName'] ?? ''));
             echo '<div class="notice notice-success"><p>Clubnaam en clubgegevens opgeslagen. Ze staan op de site, in rapporten en op afdrukbladen.</p></div>';
@@ -1464,13 +1465,29 @@ class Snookerclub_Plugin {
         echo '<tr><th>Clubavond / uren</th><td><input name="openingHours" class="regular-text" maxlength="120" value="' . esc_attr($brand['openingHours'] ?? '') . '" placeholder="Clubavond donderdag vanaf 19u" /></td></tr>';
         echo '<tr><th>Clubbericht</th><td><input name="notice" class="large-text" maxlength="240" value="' . esc_attr($brand['notice'] ?? '') . '" /></td></tr>';
         echo '<tr><th>Volgende avond</th><td><input name="nextEvent" class="large-text" maxlength="160" value="' . esc_attr($brand['nextEvent'] ?? '') . '" /></td></tr>';
-        echo '<tr><th>Frames per partij</th><td><select name="framesCount">';
-        foreach ([1, 3, 5, 7, 9, 11, 13, 17] as $n) {
-            echo '<option value="' . $n . '"' . selected((int) ($brand['framesCount'] ?? 5), $n, false) . '>Best of ' . $n . ' (' . $n . ' frames)</option>';
+        echo '<tr><th>Frames per partij</th><td><select name="frameFormat">';
+        $formats = [
+            'bestof:1' => '1 frame',
+            'bestof:3' => 'Best of 3',
+            'bestof:5' => 'Best of 5',
+            'bestof:7' => 'Best of 7',
+            'bestof:9' => 'Best of 9',
+            'bestof:11' => 'Best of 11',
+            'bestof:17' => 'Best of 17',
+            'fixed:2' => '2 frames (poule)',
+            'fixed:3' => '3 frames (poule / voorronde)',
+            'fixed:4' => '4 frames (poule)',
+            'fixed:5' => '5 frames (vast)',
+        ];
+        $current_format = (($brand['frameMode'] ?? 'bestof') === 'fixed' ? 'fixed' : 'bestof') . ':' . (int) ($brand['framesCount'] ?? 5);
+        foreach ($formats as $value => $label) {
+            echo '<option value="' . esc_attr($value) . '"' . selected($current_format, $value, false) . '>' . esc_html($label) . '</option>';
         }
-        echo '</select><p class="description">WPBSA: een frame wint wie de meeste punten heeft. 0–0 is niet gespeeld. Open Merode-finale is best of 9.</p></td></tr>';
+        echo '</select><p class="description">Best of = eerste die de meerderheid wint. Poule / voorronde = vast aantal frames (bij Kersttornooi vaak 3).</p></td></tr>';
         echo '<tr><th>Tornooien</th><td><textarea name="tournaments" rows="6" class="large-text">' . esc_textarea(implode("\n", $brand['tournaments'] ?? [])) . '</textarea>';
-        echo '<p class="description">Eén per regel. Bij Merode o.a. Potblack, Rankingtornooi, Kersttornooi, Handicaptornooi, 6 Red, Open Merode.</p></td></tr>';
+        echo '<p class="description">Eén per regel. Bij Merode o.a. Potblack, Rankingtornooi, Kersttornooi, Handicaptornooi, 6 Red, Open Merode. Agenda-items kunnen hieraan gekoppeld worden.</p></td></tr>';
+        echo '<tr><th>Handtekeningen</th><td><label><input type="checkbox" name="showSignatures" value="1"' . checked(!empty($brand['showSignatures']), true, false) . ' /> Verplicht bij uitslaginvoer (beide spelers tekenen)</label>';
+        echo '<p class="description">Uitvinken = geen handtekeningvelden bij invoer. Handtekeningen verdwijnen ook bij recente uitslagen.</p></td></tr>';
         echo '</table>';
         submit_button('Clubgegevens opslaan');
         echo '</form>';

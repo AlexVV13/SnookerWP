@@ -90,7 +90,7 @@
     if (!top.length) return '';
     return '<div class="snooker-podium">' + top.map(function (player) {
       return '<article class="snooker-seat ' + esc(player.trophy || '') + '">' + trophy(player.trophy) +
-        '<strong>' + esc(player.name) + '</strong><p>' + (player.points || 0) + ' ptn · HC ' + hc(player) + '</p></article>';
+        '<strong class="snooker-seat-name">' + esc(player.name) + '</strong><p>' + (player.points || 0) + ' ptn · HC ' + hc(player) + '</p></article>';
     }).join('') + '</div>';
   }
 
@@ -152,13 +152,13 @@
 
   function league(players) {
     if (!(players || []).length) return '<p class="snooker-live-muted">Nog geen spelers.</p>';
-    return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead><tbody>' +
+    return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead><tbody>' +
       players.map(function (player) {
         var matchPct = player.matchPct != null ? Number(player.matchPct).toFixed(2).replace('.', ',') + '%' : (player.winRate || 0) + '%';
         var framePct = player.framePct != null ? Number(player.framePct).toFixed(2).replace('.', ',') + '%' : '0,00%';
         return '<tr><td class="num">' + (player.rank || 0) + '</td><td class="name">' + trophy(player.trophy) + esc(player.name) +
           '</td><td class="num">' + (player.wins || 0) + '</td><td class="num">' + (player.losses || 0) +
-          '</td><td class="num">' + (player.framesFor || 0) + '</td><td class="num">' + (player.framesAgainst || 0) +
+          '</td><td class="num col-fplus">' + (player.framesFor || 0) + '</td><td class="num">' + (player.framesAgainst || 0) +
           '</td><td class="num">' + matchPct + '</td><td class="num">' + framePct +
           '</td><td class="num">' + (player.highestBreak || '—') + '</td><td class="num">' +
           gem(player) + '</td></tr>';
@@ -207,7 +207,8 @@
       ((agenda.upcoming || []).length
         ? agenda.upcoming.map(function (event) {
           var time = [event.start, event.end].filter(Boolean).join('–');
-          return '<div class="snooker-live-row"><span>' + esc(event.kindLabel || event.kind) + ' · ' + esc(event.title) + '</span><strong>' +
+          return '<div class="snooker-live-row"><span>' + esc(event.kindLabel || event.kind) + ' · ' + esc(event.title) +
+            (event.tournament ? ' · ' + esc(event.tournament) : '') + '</span><strong>' +
             esc(event.date) + (time ? ' · ' + esc(time) : '') + '</strong></div>';
         }).join('')
         : '<p class="snooker-live-muted">Nog geen clubavonden gepland.</p>');
