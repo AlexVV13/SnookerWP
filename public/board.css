@@ -346,12 +346,116 @@
 }
 
 @media (max-width: 720px) {
-  .snooker-podium { grid-template-columns: 1fr; }
-  /* Keep F+ visible; hide less critical % columns on narrow screens */
+  .snooker-live-embed,
+  .snookerclub-board {
+    padding: 14px 12px;
+    max-width: none;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+  .snookerclub-board--site {
+    padding: 0;
+  }
+  .snooker-live-title { font-size: 1.25rem; }
+  .snooker-live-grid,
+  .snooker-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .snooker-live-big { font-size: 1.4rem; }
+  .snooker-live-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .snooker-podium {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .snooker-seat {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    text-align: left;
+    gap: 8px 10px;
+    padding: 12px 14px;
+  }
+  .snooker-seat .snooker-trophy,
+  .snookerclub-board svg.snooker-trophy {
+    margin-right: 0;
+  }
+  .snooker-seat strong,
+  .snooker-seat .snooker-seat-name {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .snooker-seat p {
+    grid-column: 2 / -1;
+    margin: 0;
+  }
+  .snooker-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+    padding: 0 4px;
+  }
+  .snooker-league {
+    font-size: 12px;
+    min-width: 520px;
+  }
+  .snooker-league th,
+  .snooker-league td {
+    padding: 8px 6px;
+    white-space: nowrap;
+  }
+  .snooker-league td.name {
+    position: sticky;
+    left: 0;
+    background: var(--snooker-surface, #fff);
+    z-index: 1;
+    min-width: 7.5rem;
+    white-space: normal;
+    font-weight: 600;
+  }
+  .snooker-league thead th:nth-child(2) {
+    position: sticky;
+    left: 0;
+    background: var(--snooker-surface, #fff);
+    z-index: 2;
+  }
+  /* Keep W L F+; hide F- M% F% on phones */
+  .snooker-league th:nth-child(6),
+  .snooker-league td:nth-child(6),
   .snooker-league th:nth-child(7),
   .snooker-league td:nth-child(7),
   .snooker-league th:nth-child(8),
   .snooker-league td:nth-child(8) { display: none; }
+  .snooker-live-weekdays,
+  .snooker-live-cal {
+    gap: 2px;
+    font-size: 11px;
+  }
+  .snooker-live-day {
+    min-height: 44px;
+    padding: 4px 2px;
+  }
+  .snooker-live-day small {
+    font-size: 9px;
+    line-height: 1.15;
+  }
+  .snooker-report-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .snooker-live-grid,
+  .snooker-kpi-grid { grid-template-columns: 1fr; }
+  .snooker-league { min-width: 420px; }
+  /* On very small phones keep # Speler W L F+ HB */
+  .snooker-league th:nth-child(10),
+  .snooker-league td:nth-child(10) { display: none; }
 }
 
 @media print {

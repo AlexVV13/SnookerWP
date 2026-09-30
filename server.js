@@ -18,7 +18,8 @@ export function normalizeBasePath(raw) {
 }
 
 function publicOrigin(req) {
-  const proto = String(req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+  let proto = String(req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+  if (proto === 'http') proto = 'https';
   const host = String(req.get('x-forwarded-host') || req.get('host') || '').split(',')[0].trim();
   return host ? `${proto}://${host}` : '';
 }

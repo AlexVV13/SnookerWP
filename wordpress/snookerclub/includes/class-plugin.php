@@ -53,6 +53,9 @@ class Snookerclub_Plugin {
         self::ensure_pages();
         flush_rewrite_rules();
         update_option('snookerclub_plugin_version', SNOOKERCLUB_VERSION);
+        if (class_exists('Snookerclub_Updater')) {
+            Snookerclub_Updater::sync_wp_auto_update_flag(get_option('snookerclub_auto_update', '0') === '1');
+        }
     }
 
     public static function deactivate(): void {
@@ -1384,9 +1387,14 @@ class Snookerclub_Plugin {
         }
         check_admin_referer('snookerclub_check_update');
         $feed = Snookerclub_Updater::check_now();
-        $notice = $feed
-            ? 'Updatefeed geladen: versie ' . $feed['version']
-            : 'Geen updatefeed. Vul optioneel een JSON-URL in; de plugin werkt zonder.';
+        $current = defined('SNOOKERCLUB_VERSION') ? SNOOKERCLUB_VERSION : '0';
+        if (!$feed) {
+            $notice = 'Updatefeed niet bereikbaar. Controleer de Update URI of vul een JSON-URL in.';
+        } elseif (version_compare((string) $feed['version'], $current, '>')) {
+            $notice = 'Nieuwe versie beschikbaar: ' . $feed['version'] . ' (nu ' . $current . '). Zie Plugins → Geïnstalleerde plugins.';
+        } else {
+            $notice = 'Updatefeed OK: versie ' . $feed['version'] . ' (je draait al de nieuwste).';
+        }
         wp_safe_redirect(add_query_arg([
             'page' => 'snookerclub',
             'snookerclub_notice' => rawurlencode($notice),
@@ -1432,8 +1440,14 @@ class Snookerclub_Plugin {
             check_admin_referer('snookerclub_settings');
             update_option('snookerclub_slug', sanitize_title(wp_unslash($_POST['snookerclub_slug'])));
             update_option('snookerclub_update_url', esc_url_raw(wp_unslash($_POST['snookerclub_update_url'] ?? '')));
-            update_option('snookerclub_auto_update', empty($_POST['snookerclub_auto_update']) ? '0' : '1');
+            $auto = empty($_POST['snookerclub_auto_update']) ? '0' : '1';
+            update_option('snookerclub_auto_update', $auto);
             update_option('snookerclub_pretty_urls', empty($_POST['snookerclub_pretty_urls']) ? '0' : '1');
+            if (class_exists('Snookerclub_Updater')) {
+                Snookerclub_Updater::sync_wp_auto_update_flag($auto === '1');
+                delete_site_transient('snookerclub_update_feed');
+                delete_site_transient('update_plugins');
+            }
             self::ensure_pages();
             flush_rewrite_rules();
             echo '<div class="notice notice-success"><p>Instellingen opgeslagen.</p></div>';
@@ -1501,9 +1515,11 @@ class Snookerclub_Plugin {
         echo '<table class="form-table"><tr><th>Pad</th><td><input name="snookerclub_slug" value="' . $slug . '" class="regular-text" /> ';
         echo '<p class="description">WordPress-pagina: <code>' . $guest . '</code>. Bij activeren maakt de plugin deze pagina aan.</p></td></tr>';
         echo '<tr><th>Extra URL\'s</th><td><label><input type="checkbox" name="snookerclub_pretty_urls" value="1"' . checked($pretty, true, false) . ' /> Ook <code>/' . esc_html(self::slug()) . '/</code> als losse app-route (niet nodig voor shortcodes en blokken)</label></td></tr>';
-        echo '<tr><th>Updatefeed</th><td><input name="snookerclub_update_url" value="' . $feed . '" class="large-text" placeholder="https://voorbeeld.nl/snookerclub.json" />';
-        echo '<p class="description">Optioneel. JSON met <code>version</code> en <code>package</code>. Leeg = geen externe updates.</p></td></tr>';
-        echo '<tr><th>Automatisch bijwerken</th><td><label><input type="checkbox" name="snookerclub_auto_update" value="1"' . checked($auto, true, false) . ' /> Installeer nieuwe pluginversies automatisch</label></td></tr>';
+        echo '<tr><th>Updatefeed</th><td><input name="snookerclub_update_url" value="' . $feed . '" class="large-text" placeholder="' . esc_attr(Snookerclub_Updater::DEFAULT_FEED) . '" />';
+        echo '<p class="description">Leeg = standaardfeed uit de plugin-header (<code>' . esc_html(Snookerclub_Updater::DEFAULT_FEED) . '</code>). JSON met <code>version</code> en <code>package</code> (https).</p>';
+        echo '<p><a class="button" href="' . esc_url($check) . '">Nu op updates controleren</a></p></td></tr>';
+        echo '<tr><th>Automatisch bijwerken</th><td><label><input type="checkbox" name="snookerclub_auto_update" value="1"' . checked($auto, true, false) . ' /> Installeer nieuwe pluginversies automatisch</label>';
+        echo '<p class="description">Zet dit aan én zorg dat WordPress cron/automatische updates actief zijn. Bij een nieuwere feed-versie verschijnt de update onder <strong>Plugins</strong>.</p></td></tr>';
         echo '</table>';
         submit_button('Opslaan');
         echo '</form>';

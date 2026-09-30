@@ -1,6 +1,6 @@
 {
   "name": "webhost-snooker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Snookerclub voor SC De Merodesnookers (Turnhout): uitslagen, ranking en WordPress-plugin",

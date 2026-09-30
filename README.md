@@ -4,7 +4,7 @@ Clubapp voor **SC De Merodesnookers** (Turnhout): uitslagen, ranking, rapporten.
 
 **Installatie:** [docs/INSTALL.md](docs/INSTALL.md) · **Regels:** [docs/REGELS.md](docs/REGELS.md) · **WordPress:** [wordpress/README.md](wordpress/README.md)
 
-Huidige versie: **1.0.1**. Datums volgen `Europe/Amsterdam`. Seizoenen lopen augustus–juli.
+Huidige versie: **1.0.2**. Datums volgen `Europe/Amsterdam`. Seizoenen lopen augustus–juli.
 
 ## Starten
 
@@ -36,7 +36,7 @@ De image is bedoeld als gewone productiecontainer:
 Build-args:
 
 ```bash
-APP_VERSION=1.0.1 APP_REVISION=$(git rev-parse --short HEAD) BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) docker compose up -d --build
+APP_VERSION=1.0.2 APP_REVISION=$(git rev-parse --short HEAD) BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) docker compose up -d --build
 ```
 
 ## Paden
