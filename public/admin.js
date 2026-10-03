@@ -182,7 +182,7 @@ function renderRecent(target, matches) {
     <div class="row">
       <div>
         <strong>${esc(match.player1)} — ${esc(match.player2)}</strong>
-        <small>${esc(match.matchType || '')} · ${esc(match.tournament)} · ${esc(match.date)}${match.table ? ` · ${esc(match.table)}` : ''}</small>
+        <small>${esc(match.tournament)} · ${esc(match.date)}${match.frameMode === 'fixed' ? ` · ${match.bestOf || ''} frames` : (match.bestOf ? ` · best of ${match.bestOf}` : '')}</small>
       </div>
       <div class="score">${scoreline(match)}</div>
     </div>
@@ -308,6 +308,7 @@ function fillEventForm(event = {}) {
   form.title.value = event.title || '';
   form.date.value = event.date || '';
   form.kind.value = event.kind || 'clubavond';
+  if (form.tournament) form.tournament.value = event.tournament || '';
   form.start.value = event.start || '';
   form.end.value = event.end || '';
   form.place.value = event.place || '';
@@ -352,11 +353,11 @@ function renderAgenda(agenda) {
     <div class="row">
       <div>
         <strong><span class="kind ${esc(event.kind)}">${esc(event.kindLabel || event.kind)}</span>${esc(event.title)}</strong>
-        <small>${esc(eventWhen(event))}${event.place ? ` · ${esc(event.place)}` : ''}</small>
+        <small>${esc(eventWhen(event))}${event.tournament ? ` · ${esc(event.tournament)}` : ''}${event.place ? ` · ${esc(event.place)}` : ''}</small>
       </div>
       <button type="button" class="btn ghost" data-edit-event="${esc(event.id)}">Open</button>
     </div>
-  `).join('') || '<p class="muted">Nog geen items deze maand. Voeg rechts een clubavond of toernooi toe.</p>';
+  `).join('') || '<p class="muted">Nog geen items deze maand. Voeg rechts een clubavond of tornooi toe.</p>';
   list.querySelectorAll('[data-edit-event]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const hit = (agenda.events || []).find((event) => event.id === btn.dataset.editEvent);
@@ -476,18 +477,17 @@ function renderMatches(matches) {
   }
   root.innerHTML = `
     <table>
-      <thead><tr><th>Datum</th><th>Soort</th><th>Toernooi</th><th>Spelers</th><th>Stand</th><th>HC</th><th>Getekend</th><th>Baan</th><th></th></tr></thead>
+      <thead><tr><th>Datum</th><th>Tornooi</th><th>Spelers</th><th>Stand</th><th>Frames</th><th>HC</th><th>Getekend</th><th></th></tr></thead>
       <tbody>
         ${matches.map((match) => `
           <tr>
             <td>${esc(match.date)}</td>
-            <td>${esc(match.matchType || '')}</td>
             <td>${esc(match.tournament)}</td>
             <td>${esc(match.winner ? `${match.winner} wint` : '')} · ${esc(match.player1)} — ${esc(match.player2)}</td>
             <td class="score">${scoreline(match)}</td>
+            <td>${match.frameMode === 'fixed' ? `${match.bestOf || match.frames?.length || ''} vast` : `best of ${match.bestOf || 5}`}</td>
             <td>${hcLine(match)}</td>
             <td>${match.signed ? 'Beide' : 'Nee'}</td>
-            <td>${esc(match.table || '')}</td>
             <td class="actions-cell">
               <button type="button" class="btn ghost" data-edit="${esc(match.id)}">Bewerk</button>
               <button type="button" class="btn danger" data-del="${esc(match.id)}">Wis</button>
@@ -533,9 +533,14 @@ function editMatch(match) {
   fillPlayerSelects({ player1: match.player1, player2: match.player2 });
   form.break1.value = match.break1;
   form.break2.value = match.break2;
-  form.matchType.value = match.matchType || 'competitie';
-  form.table.value = match.table || '';
-  form.referee.value = match.referee || '';
+  if (form.frameFormat) {
+    const mode = match.frameMode === 'fixed' ? 'fixed' : 'bestof';
+    const count = match.bestOf || match.frames?.length || 5;
+    const value = `${mode}:${count}`;
+    if ([...form.frameFormat.options].some((opt) => opt.value === value)) {
+      form.frameFormat.value = value;
+    }
+  }
   if (form.season) form.season.value = match.season || '';
   if (form.round) form.round.value = match.round || '';
   form.note.value = match.note || '';
@@ -615,7 +620,14 @@ async function loadBrand() {
   const form = document.getElementById('brand-form');
   form.clubName.value = brand.clubName;
   form.tagline.value = brand.tagline;
-  if (form.framesCount) form.framesCount.value = String(brand.framesCount || 5);
+  if (form.frameFormat) {
+    const mode = brand.frameMode === 'fixed' ? 'fixed' : 'bestof';
+    const count = brand.framesCount || 5;
+    const value = `${mode}:${count}`;
+    if ([...form.frameFormat.options].some((opt) => opt.value === value)) {
+      form.frameFormat.value = value;
+    }
+  }
   form.accent.value = brand.accent;
   form.accentSoft.value = brand.accentSoft;
   if (form.themePreset) {
@@ -644,6 +656,10 @@ async function loadBrand() {
   form.goalClubNightsMonth.value = brand.goalClubNightsMonth || 4;
   form.tournaments.value = (brand.tournaments || []).join('\n');
   form.showSignatures.checked = brand.showSignatures !== false;
+  const eventTours = document.getElementById('event-tournaments');
+  if (eventTours) {
+    eventTours.innerHTML = (brand.tournaments || []).map((name) => `<option value="${esc(name)}"></option>`).join('');
+  }
   syncPreview();
 }
 
@@ -851,8 +867,6 @@ async function boot() {
           break2: form.break2.value,
           round: form.round.value,
           season: form.season.value,
-          matchType: form.matchType.value,
-          table: form.table.value,
         }),
       });
       form.framesFor.value = '';
@@ -960,9 +974,7 @@ async function boot() {
           player2: form.player2.value,
           break1: form.break1.value,
           break2: form.break2.value,
-          matchType: form.matchType.value,
-          table: form.table.value,
-          referee: form.referee.value,
+          frameFormat: form.frameFormat?.value || 'bestof:5',
           season: form.season?.value || '',
           round: form.round?.value || '',
           note: form.note.value,
@@ -995,7 +1007,7 @@ async function boot() {
         body: JSON.stringify({
           clubName: brandForm.clubName.value,
           tagline: brandForm.tagline.value,
-          framesCount: brandForm.framesCount?.value || 5,
+          frameFormat: brandForm.frameFormat?.value || 'bestof:5',
           themePreset: brandForm.themePreset?.value || 'custom',
           accent: brandForm.accent.value,
           accentSoft: brandForm.accentSoft.value,
@@ -1051,6 +1063,7 @@ async function boot() {
       title: eventForm.title.value,
       date: eventForm.date.value,
       kind: eventForm.kind.value,
+      tournament: eventForm.tournament?.value || '',
       start: eventForm.start.value,
       end: eventForm.end.value,
       place: eventForm.place.value,

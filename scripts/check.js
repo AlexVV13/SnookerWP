@@ -9,7 +9,7 @@ import { normalizeMatch, summarizeMatches, frameWins, rankPlayers, matchAverages
 import { pct } from '../lib/excel.js';
 import { pluginHeaderVersion, pluginManifest, buildPluginZip, PLUGIN_DIR, PUBLIC_ZIP } from '../lib/wpPlugin.js';
 import { normalizeTheme } from '../lib/theme.js';
-import { DEFAULT_BRAND, normalizeBrand } from '../lib/brand.js';
+import { DEFAULT_BRAND, normalizeBrand, FRAME_FORMATS, parseFrameFormat } from '../lib/brand.js';
 import { spawnSync } from 'child_process';
 
 let failed = 0;
@@ -32,6 +32,12 @@ const adminHtmlSrc = fs.readFileSync(path.join(root, '../public/admin.html'), 'u
 assert(guestHtmlSrc.includes('/webhost/snooker/guest.css'), 'html does not use /webhost/guest.css');
 assert(guestJs.includes('signature1') && guestJs.includes('signature2') && guestJs.includes('frames'), 'guest posts frames and both signatures');
 assert(guestHtmlSrc.includes('id="sign1"') && guestHtmlSrc.includes('id="sign2"'), 'guest has two signature pads');
+assert(guestHtmlSrc.includes('name="frameFormat"') && guestHtmlSrc.includes('poule'), 'guest has frame format with poule options');
+assert(!guestHtmlSrc.includes('name="matchType"') && !guestHtmlSrc.includes('name="table"') && !guestHtmlSrc.includes('name="referee"'), 'guest form dropped soort, baan and scheidsrechter');
+assert(guestHtmlSrc.includes('Tornooi') && !guestHtmlSrc.includes('>Toernooi '), 'guest uses Tornooi spelling');
+assert(guestJs.includes('signaturesRequired') && guestJs.includes('showSignatures'), 'guest can disable signatures from brand');
+assert(DEFAULT_BRAND.tournaments.includes('6 Red') && DEFAULT_BRAND.tournaments.includes('Kersttornooi'), 'default brand has Merode tornooien');
+assert(DEFAULT_BRAND.frameMode === 'bestof' && FRAME_FORMATS.some((row) => row.mode === 'fixed' && row.count === 3), 'brand supports fixed poule frames');
 assert(!guestJs.includes('handicap1:') && !guestJs.includes('form.handicap1'), 'guest does not post handicap fields');
 assert(adminJs.includes('/api/admin/matches') && adminJs.includes('/api/admin/brand'), 'admin edits matches and brand');
 assert(adminJs.includes('/api/admin/players') && adminHtmlSrc.includes('player-form'), 'admin manages club players');
@@ -68,18 +74,20 @@ assert(adminJs.includes('renderAppInfo') && adminJs.includes('kpis'), 'admin ren
 assert(dockerfile.includes('package-wp-plugin.js'), 'docker image bakes the wordpress plugin zip');
 assert(dockerfile.includes('HEALTHCHECK') && dockerfile.includes('org.opencontainers.image.version'), 'docker image is versioned and healthchecked');
 assert(compose.includes('healthcheck:') && compose.includes('no-new-privileges'), 'compose is production-shaped');
-assert(compose.includes('APP_VERSION: "1.9.0"') && compose.includes('webhost-snooker:1.9.0'), 'compose pins 1.9.0');
-assert(dockerfile.includes('ARG APP_VERSION=1.9.0'), 'docker default version is 1.9.0');
+assert(compose.includes('APP_VERSION: "1.0.4"') && compose.includes('webhost-snooker:1.0.4'), 'compose pins 1.0.4');
+assert(dockerfile.includes('ARG APP_VERSION=1.0.4'), 'docker default version is 1.0.4');
 assert(guestJs.includes('function applyLogo') && adminJs.includes('function applyLogo') && adminHtmlSrc.includes('id="side-club"'), 'logo and admin sidebar use the club brand');
 assert(guestJs.includes('Winst / frames') && adminJs.includes('Hoogste break') && !guestJs.includes('TOTAL PLATEAU'), 'dossier cards are Dutch');
 assert(fs.existsSync(path.join(root, '../.env.example')), 'env example documents host, path and data dir');
 assert(!guestHtmlSrc.includes('name="handicap1"') && !guestHtmlSrc.includes('name="handicap2"'), 'guest form does not take manual handicap');
 assert(guestHtmlSrc.includes('gemiddelde van de gespeelde frames'), 'guest explains computed handicap');
-assert(guestHtmlSrc.includes('6 Red') && guestHtmlSrc.includes('Open Merode') && guestHtmlSrc.includes('bestOf'), 'guest has Merode match types and best-of');
 assert(DEFAULT_BRAND.clubName === 'SC De Merodesnookers' && DEFAULT_BRAND.venue.includes('Turnhout'), 'default brand is SC De Merodesnookers in Turnhout');
 assert(normalizeBrand({ clubName: 'Tafels & Thee' }).clubName === 'Tafels & Thee', 'club name can be changed');
 assert(normalizeBrand({ framesCount: 9 }).framesCount === 9, 'best of 9 is allowed');
+assert(normalizeBrand({ frameFormat: 'fixed:3' }).frameMode === 'fixed' && normalizeBrand({ frameFormat: 'fixed:3' }).framesCount === 3, 'fixed poule frame format');
+assert(parseFrameFormat('bestof:7').framesCount === 7, 'parseFrameFormat reads best of');
 assert(adminJs.includes('hero-file') && adminJs.includes('/api/admin/hero'), 'admin can change hero image');
+assert(adminHtmlSrc.includes('name="tournament"') && adminHtmlSrc.includes('event-tournaments'), 'agenda can link to a tornooi');
 assert(dockerfile.includes('9091') && dockerfile.includes('/webhost/snooker'), 'docker listens on 9091');
 assert(compose.includes('127.0.0.1:9091:9091'), 'compose binds loopback only');
 assert(normalizeBasePath('webhost/snooker/') === '/webhost/snooker', 'base path');
@@ -87,10 +95,15 @@ assert(guestJs.includes('SNOOKER_NONCE') && adminJs.includes('SNOOKER_NONCE'), '
 const pluginMain = fs.readFileSync(path.join(PLUGIN_DIR, 'snookerclub.php'), 'utf8');
 const pluginUpdater = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-updater.php'), 'utf8');
 const pluginApp = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-plugin.php'), 'utf8');
-assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.9.0', 'wp plugin header version');
-assert(pluginMain.includes('Update URI: false'), 'wp plugin does not depend on an external update host');
-assert(!pluginMain.includes('alexvvught.com/webhost/snooker/api/public/wp-plugin'), 'wp plugin header has no hard-coded remote feed');
+assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.4', 'wp plugin header version');
+assert(pluginMain.includes('Update URI:'), 'wp plugin declares an Update URI');
 assert(pluginUpdater.includes('pre_set_site_transient_update_plugins') && pluginUpdater.includes('auto_update_plugin'), 'wp plugin checks and auto-updates');
+assert(pluginUpdater.includes('DEFAULT_FEED') && pluginUpdater.includes('sync_wp_auto_update_flag') && pluginUpdater.includes('https_url'), 'updater uses default https feed and syncs WP auto-update');
+assert(pluginUpdater.includes('pre_download') && pluginUpdater.includes('allow_update_http_args') && pluginUpdater.includes('reject_unsafe_urls'), 'updater bypasses WP safe-download for same-server hosts');
+assert(pluginUpdater.includes('update_hosts') && pluginApp.includes('Nu op updates controleren'), 'updater registers Update URI hosts and has manual check');
+assert(pluginApp.includes('snookerclub.zip') && pluginApp.includes('A valid URL was not provided'), 'settings explain manual zip when auto-update download fails');
+const insecureFeed = pluginManifest({ origin: 'http://club.example', base: '/webhost/snooker', version: '1.0.3' });
+assert(insecureFeed.package.startsWith('https://'), 'plugin feed package URL is always https');
 assert(pluginApp.includes('add_shortcode') && pluginApp.includes('snookerclub_live') && pluginApp.includes('snookerclub_ranking') && pluginApp.includes('snookerclub_rapport'), 'wp plugin has shortcodes');
 assert(fs.existsSync(path.join(PLUGIN_DIR, 'includes/class-templates.php')) && fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-templates.php'), 'utf8').includes('register_block_pattern'), 'wp plugin registers insertable patterns');
 assert(fs.existsSync(path.join(root, '../public/board.css')) && fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('snooker-league'), 'wp plugin has league-table templates');
@@ -100,6 +113,16 @@ assert(pluginApp.includes("'style' => 'snookerclub-board'") && pluginApp.include
 const boardCss = fs.readFileSync(path.join(root, '../public/board.css'), 'utf8');
 assert(boardCss.includes('.snooker-trophy') && boardCss.includes('inline-block') && boardCss.includes('.snooker-sheet-table') && boardCss.includes('@media print'), 'board css keeps trophies and printable sheets');
 assert(boardCss.includes('body.snooker-printing') && boardCss.includes('.snooker-print-target'), 'board css prints only the report sheet');
+assert(boardCss.includes('col-fplus') && boardCss.includes('.snooker-seat strong'), 'ranking keeps F+ and opaque podium names');
+assert(boardCss.includes('@media (max-width: 720px)') && boardCss.includes('position: sticky'), 'board css has mobile sticky ranking column');
+assert(boardCss.includes('snooker-slider-shell') && boardCss.includes('snooker-slider-track') && boardCss.includes('is-scrollable'), 'board css has overflow slider chrome');
+assert(!boardCss.includes('td:nth-child(8) { display: none') && !boardCss.includes('td:nth-child(10) { display: none'), 'board css no longer hides ranking columns on phones');
+assert(embedJs.includes('enhanceSliders') && embedJs.includes('snooker-slider-shell') && embedJs.includes('Veeg om meer te zien'), 'embed auto-enables table slider when too wide');
+assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('function table_wrap') && fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('snooker-slider-shell'), 'render wraps shortcode tables in slider shell');
+assert(fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes('@media (max-width: 480px)'), 'guest css has phone breakpoint');
+assert(!fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes('td:nth-child(8) { display: none'), 'guest css keeps all ranking columns on phones');
+assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('col-fplus'), 'ranking shortcode marks F+ column');
+assert(pluginApp.includes('showSignatures') && pluginApp.includes('frameFormat'), 'wp club settings control signatures and frame format');
 assert(embedJs.includes('snookerPrint') && embedJs.includes('data-static') && embedJs.includes('afterprint'), 'embed isolates print and keeps SSR reports');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'blocks/board/block.json'), 'utf8').includes('"style": "snookerclub-board"'), 'block metadata links board.css');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-theme.php'), 'utf8').includes('.snookerclub-board'), 'theme tokens apply to inserted boards');
@@ -118,8 +141,8 @@ assert(guestJs.includes('function apiUrl') && guestJs.includes('SNOOKER_REST') &
 assert(embedJs.includes('SNOOKER_REST') && embedJs.includes('data-src'), 'embed uses REST or data-src');
 assert(guestCss.includes('snookerclub-embed--ingeven'), 'guest css scopes the host wizard');
 assert(guestHtmlSrc.includes('/webhost/snooker/theme.js') && guestJs.includes('SnookerTheme'), 'guest loads theme helper');
-const feed = pluginManifest({ origin: 'https://club.example', base: '/webhost/snooker', version: '1.9.0' });
-assert(feed.version === '1.9.0' && feed.package.endsWith('/plugin/snookerclub.zip'), 'update feed points at plugin zip');
+const feed = pluginManifest({ origin: 'https://club.example', base: '/webhost/snooker', version: '1.0.3' });
+assert(feed.version === '1.0.3' && feed.package.endsWith('/plugin/snookerclub.zip'), 'update feed points at plugin zip');
 assert(fs.existsSync(path.join(PLUGIN_DIR, 'includes/class-excel.php')), 'wp plugin has excel/paper stats');
 const php = spawnSync('php', [path.join(root, '../wordpress/tests/store-check.php')], { encoding: 'utf8' });
 assert(php.status === 0, `php store check: ${(php.stderr || php.stdout || '').trim()}`);
@@ -210,6 +233,19 @@ assert(progressMeter(3, 12).pct === 25 && progressMeter(20, 10).pct === 100, 'KP
 assert(isoWeekStart('2026-09-12') === '2026-09-07', 'ISO week starts on Monday');
 assert(normalizeEvent({ title: 'Les', date: '2026-09-15', start: '19:30:00', end: '21:00:00' }).start === '19:30', 'time inputs may send seconds');
 const clubavond = normalizeEvent({ title: 'Clubavond', date: '2026-09-15', kind: 'clubavond', start: '19:30', end: '23:00' });
+assert(normalizeEvent({ title: 'Kerst poule', date: '2026-12-20', kind: 'toernooi', tournament: 'Kersttornooi' }).tournament === 'Kersttornooi', 'agenda links to a tornooi');
+assert(normalizeEvent({ title: 'Kerst poule', date: '2026-12-20', kind: 'toernooi', tournament: 'Kersttornooi' }).kindLabel === 'Tornooi', 'event kind label is Tornooi');
+const pouleMatch = normalizeMatch({
+  tournament: 'Kersttornooi',
+  date: '2026-12-20',
+  player1: 'Anna',
+  player2: 'Ben',
+  frameFormat: 'fixed:3',
+  frames: [{ p1: 40, p2: 20 }, { p1: 10, p2: 55 }, { p1: 33, p2: 30 }],
+  break1: 20,
+  break2: 12,
+});
+assert(pouleMatch.frameMode === 'fixed' && pouleMatch.bestOf === 3 && pouleMatch.frames.length === 3, 'poule match stores fixed 3 frames');
 const memberKpis = clubKpis([], [{ createdAt: '2026-09-12T10:00:00.000Z' }, { createdAt: '2026-08-01T10:00:00.000Z' }], [], { goalNewMembersMonth: 5, goalClubNightsMonth: 4 }, [clubavond], '2026-09-12');
 assert(memberKpis.newMembersMonth === 1 && memberKpis.progress.members.goal === 5, 'counts new members this month');
 assert(memberKpis.clubNightsMonth === 1 && memberKpis.clubNightsUpcoming === 1, 'counts club nights from agenda');

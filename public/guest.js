@@ -141,8 +141,32 @@ function setHidden(id, hidden) {
 }
 
 function frameSlots(form) {
-  const best = Number(form?.bestOf?.value || lastBrand?.framesCount || frameSlotCount) || 5;
+  const raw = form?.frameFormat?.value || '';
+  const match = String(raw).match(/^(?:bestof|fixed)[:|-](\d+)$/i);
+  if (match) return Math.min(17, Math.max(1, Number(match[1])));
+  const best = Number(lastBrand?.framesCount || frameSlotCount) || 5;
   return Math.min(17, Math.max(1, best));
+}
+
+function frameFormatLabel(form) {
+  const opt = form?.frameFormat?.selectedOptions?.[0];
+  return opt?.textContent?.trim() || form?.frameFormat?.value || '';
+}
+
+function signaturesRequired() {
+  return lastBrand?.showSignatures !== false;
+}
+
+function syncSignatureUi() {
+  const block = document.getElementById('sign-block');
+  const help = document.getElementById('finish-help');
+  const required = signaturesRequired();
+  if (block) block.hidden = !required;
+  if (help) {
+    help.textContent = required
+      ? 'Controleer de samenvatting. Beide spelers zetten hun eigen handtekening. Hoogste break is de hoogste serie in één beurt (0–147, tot 155 bij free ball).'
+      : 'Controleer de samenvatting. Handtekeningen staan uit voor deze club. Hoogste break is de hoogste serie in één beurt (0–147, tot 155 bij free ball).';
+  }
 }
 
 function setupFrames(form) {
@@ -207,8 +231,8 @@ function refreshPreview() {
   const review = document.getElementById('wiz-review');
   if (review) {
     review.innerHTML = `
-      <p><strong>${preview.n1}</strong> tegen <strong>${preview.n2}</strong></p>
-      <p>${form.tournament.value || '—'} · ${form.date.value || '—'} · ${form.matchType.value}${form.table.value ? ` · ${form.table.value}` : ''}</p>
+      <p><strong>${esc(preview.n1)}</strong> tegen <strong>${esc(preview.n2)}</strong></p>
+      <p>${esc(form.tournament.value || '—')} · ${esc(form.date.value || '—')} · ${esc(frameFormatLabel(form))}</p>
       <p>Stand ${preview.w1}–${preview.w2} · HC ${preview.played ? `${preview.hc1.toFixed(1)} / ${preview.hc2.toFixed(1)}` : '—'}</p>
     `;
   }
@@ -239,12 +263,13 @@ function showWizardStep() {
   const save = document.getElementById('wiz-save');
   if (save) save.disabled = lastRoster.length < 2;
   setText('wiz-label', ['Avond', 'Spelers', 'Frames', 'Afronden'][wizardStep - 1]);
+  syncSignatureUi();
   refreshPreview();
 }
 
 function validateStep(form) {
   if (wizardStep === 1) {
-    if (!form.tournament.value.trim()) return 'Kies of typ een toernooi.';
+    if (!form.tournament.value.trim()) return 'Kies of typ een tornooi.';
     if (!form.date.value) return 'Kies de datum van de wedstrijd.';
   }
   if (wizardStep === 2) {
@@ -266,7 +291,9 @@ function validateStep(form) {
     const b1 = Number(form.break1.value);
     const b2 = Number(form.break2.value);
     if (b1 < 0 || b1 > 155 || b2 < 0 || b2 > 155) return 'Een break is 0–147, of tot 155 bij free ball.';
-    if (!readSignature1() || !readSignature2()) return 'Beide spelers moeten hun handtekening zetten.';
+    if (signaturesRequired() && (!readSignature1() || !readSignature2())) {
+      return 'Beide spelers moeten hun handtekening zetten.';
+    }
   }
   return '';
 }
@@ -414,7 +441,7 @@ function renderAgendaDetail(agenda, date) {
       <div class="row">
         <div>
           <strong><span class="kind ${esc(event.kind)}">${esc(event.kindLabel || event.kind)}</span>${esc(event.title)}</strong>
-          <div class="sub">${esc(eventWhen(event))}${event.place ? ` · ${esc(event.place)}` : ''}${event.note ? ` · ${esc(event.note)}` : ''}</div>
+          <div class="sub">${esc(eventWhen(event))}${event.tournament ? ` · ${esc(event.tournament)}` : ''}${event.place ? ` · ${esc(event.place)}` : ''}${event.note ? ` · ${esc(event.note)}` : ''}</div>
         </div>
       </div>
     `).join('')
@@ -557,10 +584,16 @@ async function openDossier(name) {
 function renderOverview(data) {
   lastBrand = data.brand || lastBrand;
   const form = document.getElementById('match-form');
-  if (form?.bestOf && lastBrand?.framesCount && !form.dataset.bestLocked) {
-    form.bestOf.value = String(lastBrand.framesCount);
+  if (form?.frameFormat && lastBrand && !form.dataset.bestLocked) {
+    const mode = lastBrand.frameMode === 'fixed' ? 'fixed' : 'bestof';
+    const count = lastBrand.framesCount || 5;
+    const value = `${mode}:${count}`;
+    if ([...form.frameFormat.options].some((opt) => opt.value === value)) {
+      form.frameFormat.value = value;
+    }
     setupFrames(form);
   }
+  syncSignatureUi();
   document.title = data.brand.clubName || 'SC De Merodesnookers';
   setText('club-kicker', data.brand.venue || data.brand.tagline || data.brand.clubName);
   setText('club-name', data.brand.clubName);
@@ -614,10 +647,8 @@ function renderOverview(data) {
       <div>
         <strong>${match.winner ? `${esc(match.winner)} wint` : 'Gelijkspel'} · ${esc(match.player1)} — ${esc(match.player2)}</strong>
         <div class="sub">
-          ${match.matchType ? `<span class="badge">${esc(match.matchType)}</span>` : ''}
           ${esc(match.tournament)} · ${esc(match.date)}
-          ${match.table ? ` · ${esc(match.table)}` : ''}
-          ${match.referee ? ` · scheids ${esc(match.referee)}` : ''}
+          ${match.frameMode === 'fixed' ? ` · ${match.bestOf || match.frames?.length || ''} frames (poule)` : (match.bestOf ? ` · best of ${match.bestOf}` : '')}
           ${match.framesPlayed ? ` · HC ${formatHc(match.handicap1, match.framesPlayed)}/${formatHc(match.handicap2, match.framesPlayed)}` : ''}
           ${match.note ? ` · ${esc(match.note)}` : ''}
         </div>
@@ -692,7 +723,7 @@ async function boot() {
     syncPlayerChoices();
     refreshPreview();
   });
-  form.bestOf?.addEventListener('change', () => {
+  form.frameFormat?.addEventListener('change', () => {
     form.dataset.bestLocked = '1';
     setupFrames(form);
     refreshPreview();
@@ -754,16 +785,24 @@ async function boot() {
           frames: collectFrames(form),
           break1: form.break1.value,
           break2: form.break2.value,
-          matchType: form.matchType.value,
-          bestOf: form.bestOf?.value || 5,
-          table: form.table.value,
-          referee: form.referee.value,
+          frameFormat: form.frameFormat?.value || 'bestof:5',
           note: form.note.value,
-          signature1: readSignature1(),
-          signature2: readSignature2(),
+          signature1: signaturesRequired() ? readSignature1() : '',
+          signature2: signaturesRequired() ? readSignature2() : '',
         }),
       });
       resetWizard(form);
+      if (form.frameFormat && lastBrand) {
+        const mode = lastBrand.frameMode === 'fixed' ? 'fixed' : 'bestof';
+        const count = lastBrand.framesCount || 5;
+        const value = `${mode}:${count}`;
+        if ([...form.frameFormat.options].some((opt) => opt.value === value)) {
+          form.frameFormat.value = value;
+        }
+        delete form.dataset.bestLocked;
+        setupFrames(form);
+      }
+      syncSignatureUi();
       renderOverview(await json(apiUrl('/api/public/overview')));
       showGuestTab(defaultTab() === 'match' ? 'match' : 'club');
     } catch (error) {

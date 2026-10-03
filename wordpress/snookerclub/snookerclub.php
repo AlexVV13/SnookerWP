@@ -3,7 +3,7 @@
  * Plugin Name: Snookerclub
  * Plugin URI: https://alexvvught.com/
  * Description: Ranking, uitslagen, rapporten en invoer als invoegbare templates — in het WordPress-thema of als clubdashboard.
- * Version: 1.0.0
+ * Version: 1.0.4
  * Requires at least: 6.2
  * Requires PHP: 8.1
  * Author: Alex van Vught
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SNOOKERCLUB_VERSION', '1.0.0');
+define('SNOOKERCLUB_VERSION', '1.0.4');
 define('SNOOKERCLUB_FILE', __FILE__);
 define('SNOOKERCLUB_DIR', plugin_dir_path(__FILE__));
 define('SNOOKERCLUB_URL', plugin_dir_url(__FILE__));

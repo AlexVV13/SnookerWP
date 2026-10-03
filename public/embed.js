@@ -90,7 +90,7 @@
     if (!top.length) return '';
     return '<div class="snooker-podium">' + top.map(function (player) {
       return '<article class="snooker-seat ' + esc(player.trophy || '') + '">' + trophy(player.trophy) +
-        '<strong>' + esc(player.name) + '</strong><p>' + (player.points || 0) + ' ptn · HC ' + hc(player) + '</p></article>';
+        '<strong class="snooker-seat-name">' + esc(player.name) + '</strong><p>' + (player.points || 0) + ' ptn · HC ' + hc(player) + '</p></article>';
     }).join('') + '</div>';
   }
 
@@ -128,41 +128,107 @@
     }).join('') + '</div>';
   }
 
+  function tableWrap(innerHtml) {
+    return '<div class="snooker-slider-shell">' +
+      '<div class="snooker-table-wrap snooker-slider-track" tabindex="0" role="region" aria-label="Tabel, veeg horizontaal voor meer kolommen">' +
+      innerHtml +
+      '</div>' +
+      '<p class="snooker-slider-hint no-print" hidden>Veeg om meer te zien</p>' +
+      '<span class="snooker-slider-fade snooker-slider-fade--left" aria-hidden="true"></span>' +
+      '<span class="snooker-slider-fade snooker-slider-fade--right" aria-hidden="true"></span>' +
+      '</div>';
+  }
+
+  function syncSlider(shell) {
+    var track = shell.querySelector('.snooker-slider-track') || shell.querySelector('.snooker-table-wrap');
+    if (!track) return;
+    var hint = shell.querySelector('.snooker-slider-hint');
+    var overflow = track.scrollWidth > track.clientWidth + 2;
+    shell.classList.toggle('is-scrollable', overflow);
+    if (hint) {
+      if (overflow) hint.removeAttribute('hidden');
+      else hint.setAttribute('hidden', '');
+    }
+    var max = Math.max(0, track.scrollWidth - track.clientWidth);
+    shell.classList.toggle('has-more-left', overflow && track.scrollLeft > 4);
+    shell.classList.toggle('has-more-right', overflow && max - track.scrollLeft > 4);
+  }
+
+  function enhanceSliders(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('.snooker-table-wrap:not(.snooker-slider-track)'), function (wrap) {
+      if (wrap.closest('.snooker-slider-shell')) return;
+      var parent = wrap.parentNode;
+      if (!parent) return;
+      var shell = document.createElement('div');
+      shell.className = 'snooker-slider-shell';
+      parent.insertBefore(shell, wrap);
+      wrap.classList.add('snooker-slider-track');
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('role', 'region');
+      wrap.setAttribute('aria-label', 'Tabel, veeg horizontaal voor meer kolommen');
+      shell.appendChild(wrap);
+      var hint = document.createElement('p');
+      hint.className = 'snooker-slider-hint no-print';
+      hint.setAttribute('hidden', '');
+      hint.textContent = 'Veeg om meer te zien';
+      shell.appendChild(hint);
+      ['left', 'right'].forEach(function (side) {
+        var fade = document.createElement('span');
+        fade.className = 'snooker-slider-fade snooker-slider-fade--' + side;
+        fade.setAttribute('aria-hidden', 'true');
+        shell.appendChild(fade);
+      });
+    });
+    var shells = scope.classList && scope.classList.contains('snooker-slider-shell')
+      ? [scope]
+      : scope.querySelectorAll('.snooker-slider-shell');
+    Array.prototype.forEach.call(shells, function (shell) {
+      var track = shell.querySelector('.snooker-slider-track') || shell.querySelector('.snooker-table-wrap');
+      if (!track) return;
+      if (shell.getAttribute('data-slider-bound') !== '1') {
+        shell.setAttribute('data-slider-bound', '1');
+        track.addEventListener('scroll', function () { syncSlider(shell); }, { passive: true });
+      }
+      syncSlider(shell);
+    });
+  }
+
   function dossierTable(rows) {
     if (!(rows || []).length) return '<p class="snooker-live-muted">Nog geen partijen in dit dossier.</p>';
-    return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table"><thead><tr><th>VERSUS</th><th>TOURNAMENT</th><th>RESULT</th><th>W</th><th>L</th><th>BREAKS</th><th>ROUND</th><th>SEASON</th></tr></thead><tbody>' +
+    return tableWrap('<table class="snooker-league snooker-sheet-table"><thead><tr><th>VERSUS</th><th>TOURNAMENT</th><th>RESULT</th><th>W</th><th>L</th><th>BREAKS</th><th>ROUND</th><th>SEASON</th></tr></thead><tbody>' +
       rows.map(function (row) {
         return '<tr><td>' + esc(row.versus || '') + '</td><td>' + esc(row.tournament || '') +
           '</td><td class="num">' + esc(String(row.result || '').replace('-', '/')) +
           '</td><td class="num">' + (row.w || 0) + '</td><td class="num">' + (row.l || 0) +
           '</td><td class="num">' + esc(row.breaks || '') + '</td><td>' + esc(row.roundLabel || row.round || '') +
           '</td><td>' + esc(row.season || '') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+      }).join('') + '</tbody></table>');
   }
 
   function h2hTable(rows) {
     if (!(rows || []).length) return '<p class="snooker-live-muted">Nog geen onderlinge partijen.</p>';
-    return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table"><thead><tr><th>VERSUS</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>Laatste</th></tr></thead><tbody>' +
+    return tableWrap('<table class="snooker-league snooker-sheet-table"><thead><tr><th>VERSUS</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>Laatste</th></tr></thead><tbody>' +
       rows.map(function (row) {
         return '<tr><td>' + esc(row.versus || '') + '</td><td class="num">' + (row.wins || 0) +
           '</td><td class="num">' + (row.losses || 0) + '</td><td class="num">' + (row.framesFor || 0) +
           '</td><td class="num">' + (row.framesAgainst || 0) + '</td><td class="num">' + esc(row.lastResult || '') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+      }).join('') + '</tbody></table>');
   }
 
   function league(players) {
     if (!(players || []).length) return '<p class="snooker-live-muted">Nog geen spelers.</p>';
-    return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead><tbody>' +
+    return tableWrap('<table class="snooker-league snooker-sheet-table"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead><tbody>' +
       players.map(function (player) {
         var matchPct = player.matchPct != null ? Number(player.matchPct).toFixed(2).replace('.', ',') + '%' : (player.winRate || 0) + '%';
         var framePct = player.framePct != null ? Number(player.framePct).toFixed(2).replace('.', ',') + '%' : '0,00%';
         return '<tr><td class="num">' + (player.rank || 0) + '</td><td class="name">' + trophy(player.trophy) + esc(player.name) +
           '</td><td class="num">' + (player.wins || 0) + '</td><td class="num">' + (player.losses || 0) +
-          '</td><td class="num">' + (player.framesFor || 0) + '</td><td class="num">' + (player.framesAgainst || 0) +
+          '</td><td class="num col-fplus">' + (player.framesFor || 0) + '</td><td class="num">' + (player.framesAgainst || 0) +
           '</td><td class="num">' + matchPct + '</td><td class="num">' + framePct +
           '</td><td class="num">' + (player.highestBreak || '—') + '</td><td class="num">' +
           gem(player) + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+      }).join('') + '</tbody></table>');
   }
 
   function results(matches) {
@@ -207,7 +273,8 @@
       ((agenda.upcoming || []).length
         ? agenda.upcoming.map(function (event) {
           var time = [event.start, event.end].filter(Boolean).join('–');
-          return '<div class="snooker-live-row"><span>' + esc(event.kindLabel || event.kind) + ' · ' + esc(event.title) + '</span><strong>' +
+          return '<div class="snooker-live-row"><span>' + esc(event.kindLabel || event.kind) + ' · ' + esc(event.title) +
+            (event.tournament ? ' · ' + esc(event.tournament) : '') + '</span><strong>' +
             esc(event.date) + (time ? ' · ' + esc(time) : '') + '</strong></div>';
         }).join('')
         : '<p class="snooker-live-muted">Nog geen clubavonden gepland.</p>');
@@ -269,6 +336,7 @@
     else if (view === 'dossier') renderDossier(host, data);
     else if (view === 'h2h') renderH2h(host, data);
     else renderLive(host, data);
+    enhanceSliders(host);
   }
 
   function mount(host, kind) {
@@ -295,7 +363,8 @@
     if (host.getAttribute('data-season') && api.indexOf('season=') < 0) {
       api += (api.indexOf('?') >= 0 ? '&' : '?') + 'season=' + encodeURIComponent(host.getAttribute('data-season'));
     }
-    if (host.getAttribute('data-static') === '1' && host.querySelector('.snooker-sheet-head, .snooker-league')) {
+    if (host.getAttribute('data-static') === '1' && host.querySelector('.snooker-sheet-head, .snooker-league, .snooker-slider-shell')) {
+      enhanceSliders(host);
       return;
     }
     function tick() {
@@ -340,6 +409,15 @@
       var fallback = el('div', { 'data-snooker-live': '' });
       script.parentNode.insertBefore(fallback, script);
       mount(fallback, 'live');
+    }
+    enhanceSliders(document);
+    if (!window.__snookerSliderResize) {
+      window.__snookerSliderResize = true;
+      var resizeTimer = null;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () { enhanceSliders(document); }, 120);
+      });
     }
   }
 

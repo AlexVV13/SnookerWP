@@ -165,7 +165,7 @@
         </div>
         <input type="hidden" name="id" />
         <div class="grid">
-          <label>Toernooi <input name="tournament" required /></label>
+          <label>Tornooi <input name="tournament" required /></label>
           <label>Datum <input type="date" name="date" required /></label>
           <label>Speler 1
             <select name="player1" required>
@@ -179,21 +179,19 @@
           </label>
           <label>Break 1 <input name="break1" type="number" min="0" max="155" /></label>
           <label>Break 2 <input name="break2" type="number" min="0" max="155" /></label>
-          <label>Soort
-            <select name="matchType">
-              <option value="competitie">Competitie</option>
-              <option value="vriendschappelijk">Vriendschappelijk</option>
-              <option value="beker">Beker</option>
-              <option value="finale">Finale</option>
-              <option value="potblack">Potblack</option>
-              <option value="ranking">Rankingtornooi</option>
-              <option value="handicap">Handicaptornooi</option>
-              <option value="6red">6 Red</option>
-              <option value="open">Open Merode</option>
+          <label>Frames
+            <select name="frameFormat">
+              <option value="bestof:1">1 frame</option>
+              <option value="bestof:3">Best of 3</option>
+              <option value="bestof:5">Best of 5</option>
+              <option value="bestof:7">Best of 7</option>
+              <option value="bestof:9">Best of 9</option>
+              <option value="fixed:2">2 frames (poule)</option>
+              <option value="fixed:3">3 frames (poule / voorronde)</option>
+              <option value="fixed:4">4 frames (poule)</option>
+              <option value="fixed:5">5 frames (vast)</option>
             </select>
           </label>
-          <label>Baan <input name="table" /></label>
-          <label>Scheidsrechter <input name="referee" /></label>
           <label>Seizoen <input name="season" placeholder="2016-2017" /></label>
           <label>Ronde
             <input name="round" list="round-names" placeholder="kwart finale" />
@@ -228,7 +226,7 @@
                 <option value="">Kies tegenstander</option>
               </select>
             </label>
-            <label>Toernooi <input name="tournament" required maxlength="80" placeholder="Snookertronooi 1" /></label>
+            <label>Tornooi <input name="tournament" required maxlength="80" placeholder="Snookertronooi 1" /></label>
             <label>Datum <input type="date" name="date" required /></label>
             <label>Frames voor <input name="framesFor" type="number" min="0" max="17" required /></label>
             <label>Frames tegen <input name="framesAgainst" type="number" min="0" max="17" required /></label>
@@ -238,20 +236,6 @@
               <input name="round" list="round-names" placeholder="kwart finale" />
             </label>
             <label>Seizoen <input name="season" placeholder="wordt uit de datum gehaald" /></label>
-            <label>Soort
-              <select name="matchType">
-                <option value="competitie">Competitie</option>
-                <option value="vriendschappelijk">Vriendschappelijk</option>
-                <option value="beker">Beker</option>
-                <option value="finale">Finale</option>
-                <option value="potblack">Potblack</option>
-                <option value="ranking">Rankingtornooi</option>
-                <option value="handicap">Handicaptornooi</option>
-                <option value="6red">6 Red</option>
-                <option value="open">Open Merode</option>
-              </select>
-            </label>
-            <label>Baan <input name="table" maxlength="40" /></label>
             <div class="actions wide">
               <button type="submit" class="btn">Papieruitslag opslaan</button>
             </div>
@@ -359,7 +343,7 @@
             <h2 id="event-form-title">Nieuw item</h2>
             <button type="button" class="btn ghost" id="event-reset">Leegmaken</button>
           </div>
-          <p class="muted">Zet clubavonden, toernooien of lessen in de maand. Bezoekers zien die in de guest-app en via het iframe.</p>
+          <p class="muted">Zet clubavonden, tornooien of lessen in de maand. Koppel een tornooi uit de clublijst zodat bezoekers het herkennen.</p>
           <form id="event-form" class="grid">
             <input type="hidden" name="id" />
             <label class="wide">Titel <input name="title" required maxlength="80" placeholder="Clubavond" /></label>
@@ -367,20 +351,24 @@
             <label>Soort
               <select name="kind">
                 <option value="clubavond">Clubavond</option>
-                <option value="toernooi">Toernooi</option>
+                <option value="toernooi">Tornooi</option>
                 <option value="les">Les</option>
                 <option value="overig">Overig</option>
               </select>
             </label>
+            <label class="wide">Tornooi (koppeling)
+              <input name="tournament" list="event-tournaments" maxlength="80" placeholder="Kersttornooi, Open Merode, …" />
+            </label>
             <label>Start <input type="time" name="start" /></label>
             <label>Einde <input type="time" name="end" /></label>
-            <label class="wide">Locatie <input name="place" maxlength="80" placeholder="Baan 1–4" /></label>
+            <label class="wide">Locatie <input name="place" maxlength="80" placeholder="Biljart Palace" /></label>
             <label class="wide">Notitie <input name="note" maxlength="200" /></label>
             <div class="actions wide">
               <button type="submit" class="btn">Opslaan</button>
               <button type="button" class="btn danger" id="event-delete" hidden>Verwijderen</button>
             </div>
           </form>
+          <datalist id="event-tournaments"></datalist>
         </section>
       </div>
     </section>
@@ -402,14 +390,18 @@
             <label>Clubnaam <input name="clubName" required maxlength="80" placeholder="SC De Merodesnookers" /></label>
             <label>Tagline <input name="tagline" maxlength="160" /></label>
             <label>Frames per partij
-              <select name="framesCount">
-                <option value="1">Best of 1</option>
-                <option value="3">Best of 3</option>
-                <option value="5" selected>Best of 5</option>
-                <option value="7">Best of 7</option>
-                <option value="9">Best of 9</option>
-                <option value="11">Best of 11</option>
-                <option value="17">Best of 17</option>
+              <select name="frameFormat">
+                <option value="bestof:1">1 frame</option>
+                <option value="bestof:3">Best of 3</option>
+                <option value="bestof:5" selected>Best of 5</option>
+                <option value="bestof:7">Best of 7</option>
+                <option value="bestof:9">Best of 9</option>
+                <option value="bestof:11">Best of 11</option>
+                <option value="bestof:17">Best of 17</option>
+                <option value="fixed:2">2 frames (poule)</option>
+                <option value="fixed:3">3 frames (poule / voorronde)</option>
+                <option value="fixed:4">4 frames (poule)</option>
+                <option value="fixed:5">5 frames (vast)</option>
               </select>
             </label>
             <label>Accentkleur <input name="accent" type="color" /></label>
@@ -453,10 +445,10 @@
             <label>Doel centuries <input name="goalCenturies" type="number" min="1" max="50" /></label>
             <label>Maanddoel nieuwe leden <input name="goalNewMembersMonth" type="number" min="1" max="80" /></label>
             <label>Maanddoel clubavonden <input name="goalClubNightsMonth" type="number" min="1" max="40" /></label>
-            <label class="wide">Toernooien (één per regel)
+            <label class="wide">Tornooien (één per regel)
               <textarea name="tournaments" rows="5"></textarea>
             </label>
-            <label class="check wide"><input type="checkbox" name="showSignatures" /> Handtekeningen van beide spelers tonen bij bezoekers</label>
+            <label class="check wide"><input type="checkbox" name="showSignatures" /> Handtekeningen bij uitslaginvoer (beide spelers moeten tekenen)</label>
           </div>
           <div class="actions">
             <button type="submit" class="btn">Club opslaan</button>

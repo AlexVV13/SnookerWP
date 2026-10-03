@@ -63,6 +63,7 @@ $ranking = Snookerclub_Render::ranking([
     'top3' => [['name' => 'Anna', 'points' => 4, 'trophy' => 'gold', 'handicap' => 62, 'framesPlayed' => 6]],
 ], ['skin' => 'site']);
 assert_true(str_contains($ranking, 'snooker-league') && str_contains($ranking, 'Anna'), 'ranking renders a league table');
+assert_true(str_contains($ranking, 'snooker-slider-shell') && str_contains($ranking, 'snooker-slider-track'), 'ranking table is wrapped for mobile slider');
 assert_true(str_contains($ranking, 'snookerclub-board--site'), 'ranking can follow the site skin');
 assert_true(str_contains($ranking, 'snooker-trophy') && str_contains($ranking, 'snooker-trophy--gold'), 'ranking shows a gold trophy');
 $placed = Snookerclub_Render::ranking([
@@ -110,6 +111,7 @@ $rapport = Snookerclub_Render::rapport([
 assert_true(str_contains($rapport, 'snooker-sheet-head') && str_contains($rapport, 'snooker-league') && str_contains($rapport, 'F+'), 'rapport renders excel ranking sheet');
 assert_true(str_contains($rapport, 'data-snooker-rapport') && str_contains($rapport, 'format=csv'), 'rapport has print/csv hooks');
 assert_true(str_contains($rapport, 'data-static="1"') && str_contains($rapport, 'data-snooker-print'), 'rapport stays static and prints the sheet');
+assert_true(str_contains($rapport, 'snooker-slider-shell') && str_contains($rapport, 'Veeg om meer te zien'), 'rapport ranking uses overflow slider shell');
 $dossier = Snookerclub_Render::dossier([
     'brand' => ['clubName' => 'Tafels'],
     'player' => 'Anna',
@@ -119,7 +121,10 @@ $dossier = Snookerclub_Render::dossier([
     'rows' => [['versus' => 'Ben', 'tournament' => 'Snookertronooi 1', 'result' => '2-1', 'w' => 1, 'l' => 0, 'breaks' => 42, 'roundLabel' => 'H kwart finale', 'season' => '2016-2017']],
 ], ['skin' => 'club', 'player' => 'Anna']);
 assert_true(str_contains($dossier, 'VERSUS') && str_contains($dossier, 'snooker-career-grid') && str_contains($dossier, 'Anna'), 'dossier renders career cards and excel log');
+assert_true(str_contains($dossier, 'snooker-slider-shell') && substr_count($dossier, 'snooker-slider-shell') >= 2, 'dossier h2h and partijlog use slider shells');
 assert_true(str_contains($dossier, 'data-static="1"'), 'dossier is not live-refreshed over the server render');
+assert_true(str_contains($css, 'snooker-slider-shell') && str_contains($css, 'is-scrollable'), 'board.css styles the overflow slider');
+assert_true(!str_contains($css, 'td:nth-child(8) { display: none'), 'board.css keeps all ranking columns on phones');
 $empty_sheet = Snookerclub_Render::dossier([
     'brand' => ['clubName' => 'Tafels'],
     'player' => '',
