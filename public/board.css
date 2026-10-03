@@ -14,7 +14,8 @@
   border: 1px solid var(--snooker-line);
   border-radius: var(--snooker-radius);
   padding: 20px 22px;
-  max-width: 720px;
+  max-width: min(720px, 100%);
+  overflow: visible;
   box-shadow: 0 10px 24px color-mix(in srgb, #163524 8%, transparent);
 }
 .snooker-live-embed *,
@@ -135,7 +136,61 @@
   font-weight: 700;
 }
 .snooker-seat p { margin: 0; color: color-mix(in srgb, currentColor 72%, #5b6d61); font-size: 12px; opacity: 1; }
-.snooker-table-wrap { overflow-x: auto; }
+.snooker-slider-shell {
+  position: relative;
+  max-width: 100%;
+}
+.snooker-table-wrap,
+.snooker-slider-track {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+.snooker-slider-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--snooker-muted);
+  text-align: center;
+}
+.snooker-slider-shell:not(.is-scrollable) .snooker-slider-hint,
+.snooker-slider-shell:not(.is-scrollable) .snooker-slider-fade {
+  display: none;
+}
+.snooker-slider-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 2;
+}
+.snooker-slider-shell.is-scrollable .snooker-slider-fade {
+  bottom: 28px;
+}
+.snooker-slider-fade--left {
+  left: 0;
+  background: linear-gradient(to right, var(--snooker-surface, #fff), transparent);
+}
+.snooker-slider-fade--right {
+  right: 0;
+  background: linear-gradient(to left, var(--snooker-surface, #fff), transparent);
+}
+.snooker-slider-shell.has-more-left .snooker-slider-fade--left,
+.snooker-slider-shell.has-more-right .snooker-slider-fade--right {
+  opacity: 1;
+}
+/* Keep shortcode boards usable inside Elementor/theme overflow clips */
+.elementor-widget-container:has(.snookerclub-board),
+.elementor-widget-container:has(.snooker-live-embed),
+.elementor-shortcode:has(.snookerclub-board),
+.elementor-shortcode:has(.snooker-live-embed) {
+  overflow: visible;
+}
 .snooker-league {
   width: 100%;
   border-collapse: collapse;
@@ -393,22 +448,28 @@
     grid-column: 2 / -1;
     margin: 0;
   }
-  .snooker-table-wrap {
+  .snooker-slider-shell {
+    margin: 0 -4px;
+  }
+  .snooker-table-wrap,
+  .snooker-slider-track {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -4px;
     padding: 0 4px;
   }
   .snooker-league {
     font-size: 12px;
-    min-width: 520px;
+    /* Force natural width so wide rankings become a swipe slider */
+    width: max-content;
+    min-width: 640px;
   }
   .snooker-league th,
   .snooker-league td {
     padding: 8px 6px;
     white-space: nowrap;
   }
-  .snooker-league td.name {
+  .snooker-league td.name,
+  .snooker-league thead th:nth-child(2) {
     position: sticky;
     left: 0;
     background: var(--snooker-surface, #fff);
@@ -418,18 +479,8 @@
     font-weight: 600;
   }
   .snooker-league thead th:nth-child(2) {
-    position: sticky;
-    left: 0;
-    background: var(--snooker-surface, #fff);
     z-index: 2;
   }
-  /* Keep W L F+; hide F- M% F% on phones */
-  .snooker-league th:nth-child(6),
-  .snooker-league td:nth-child(6),
-  .snooker-league th:nth-child(7),
-  .snooker-league td:nth-child(7),
-  .snooker-league th:nth-child(8),
-  .snooker-league td:nth-child(8) { display: none; }
   .snooker-live-weekdays,
   .snooker-live-cal {
     gap: 2px;
@@ -452,10 +503,7 @@
 @media (max-width: 420px) {
   .snooker-live-grid,
   .snooker-kpi-grid { grid-template-columns: 1fr; }
-  .snooker-league { min-width: 420px; }
-  /* On very small phones keep # Speler W L F+ HB */
-  .snooker-league th:nth-child(10),
-  .snooker-league td:nth-child(10) { display: none; }
+  .snooker-league { min-width: 600px; }
 }
 
 @media print {

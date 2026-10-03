@@ -401,7 +401,7 @@ canvas {
     -webkit-overflow-scrolling: touch;
     margin: 0 -4px;
   }
-  table { font-size: 12px; min-width: 520px; }
+  table { font-size: 12px; min-width: 640px; }
   th, td { padding: 8px 6px; white-space: nowrap; }
   td:nth-child(2), th:nth-child(2) {
     position: sticky;
@@ -411,10 +411,7 @@ canvas {
     white-space: normal;
     min-width: 7rem;
   }
-  /* Hide F- M% F% on phones; keep F+ */
-  th:nth-child(6), td:nth-child(6),
-  th:nth-child(7), td:nth-child(7),
-  th:nth-child(8), td:nth-child(8) { display: none; }
+  /* Keep all ranking columns; table-wrap becomes a horizontal swipe slider */
   .wizard-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -441,8 +438,7 @@ canvas {
 @media (max-width: 480px) {
   .stats { grid-template-columns: 1fr; }
   .guest-tabs button { font-size: 12px; padding: 10px 6px; }
-  table { min-width: 400px; }
-  th:nth-child(10), td:nth-child(10) { display: none; }
+  table { min-width: 560px; }
 }
 
 html[data-density="compact"] .wrap,

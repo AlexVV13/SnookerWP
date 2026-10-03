@@ -74,8 +74,8 @@ assert(adminJs.includes('renderAppInfo') && adminJs.includes('kpis'), 'admin ren
 assert(dockerfile.includes('package-wp-plugin.js'), 'docker image bakes the wordpress plugin zip');
 assert(dockerfile.includes('HEALTHCHECK') && dockerfile.includes('org.opencontainers.image.version'), 'docker image is versioned and healthchecked');
 assert(compose.includes('healthcheck:') && compose.includes('no-new-privileges'), 'compose is production-shaped');
-assert(compose.includes('APP_VERSION: "1.0.3"') && compose.includes('webhost-snooker:1.0.3'), 'compose pins 1.0.3');
-assert(dockerfile.includes('ARG APP_VERSION=1.0.3'), 'docker default version is 1.0.3');
+assert(compose.includes('APP_VERSION: "1.0.4"') && compose.includes('webhost-snooker:1.0.4'), 'compose pins 1.0.4');
+assert(dockerfile.includes('ARG APP_VERSION=1.0.4'), 'docker default version is 1.0.4');
 assert(guestJs.includes('function applyLogo') && adminJs.includes('function applyLogo') && adminHtmlSrc.includes('id="side-club"'), 'logo and admin sidebar use the club brand');
 assert(guestJs.includes('Winst / frames') && adminJs.includes('Hoogste break') && !guestJs.includes('TOTAL PLATEAU'), 'dossier cards are Dutch');
 assert(fs.existsSync(path.join(root, '../.env.example')), 'env example documents host, path and data dir');
@@ -95,7 +95,7 @@ assert(guestJs.includes('SNOOKER_NONCE') && adminJs.includes('SNOOKER_NONCE'), '
 const pluginMain = fs.readFileSync(path.join(PLUGIN_DIR, 'snookerclub.php'), 'utf8');
 const pluginUpdater = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-updater.php'), 'utf8');
 const pluginApp = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-plugin.php'), 'utf8');
-assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.3', 'wp plugin header version');
+assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.4', 'wp plugin header version');
 assert(pluginMain.includes('Update URI:'), 'wp plugin declares an Update URI');
 assert(pluginUpdater.includes('pre_set_site_transient_update_plugins') && pluginUpdater.includes('auto_update_plugin'), 'wp plugin checks and auto-updates');
 assert(pluginUpdater.includes('DEFAULT_FEED') && pluginUpdater.includes('sync_wp_auto_update_flag') && pluginUpdater.includes('https_url'), 'updater uses default https feed and syncs WP auto-update');
@@ -115,7 +115,12 @@ assert(boardCss.includes('.snooker-trophy') && boardCss.includes('inline-block')
 assert(boardCss.includes('body.snooker-printing') && boardCss.includes('.snooker-print-target'), 'board css prints only the report sheet');
 assert(boardCss.includes('col-fplus') && boardCss.includes('.snooker-seat strong'), 'ranking keeps F+ and opaque podium names');
 assert(boardCss.includes('@media (max-width: 720px)') && boardCss.includes('position: sticky'), 'board css has mobile sticky ranking column');
+assert(boardCss.includes('snooker-slider-shell') && boardCss.includes('snooker-slider-track') && boardCss.includes('is-scrollable'), 'board css has overflow slider chrome');
+assert(!boardCss.includes('td:nth-child(8) { display: none') && !boardCss.includes('td:nth-child(10) { display: none'), 'board css no longer hides ranking columns on phones');
+assert(embedJs.includes('enhanceSliders') && embedJs.includes('snooker-slider-shell') && embedJs.includes('Veeg om meer te zien'), 'embed auto-enables table slider when too wide');
+assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('function table_wrap') && fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('snooker-slider-shell'), 'render wraps shortcode tables in slider shell');
 assert(fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes('@media (max-width: 480px)'), 'guest css has phone breakpoint');
+assert(!fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes('td:nth-child(8) { display: none'), 'guest css keeps all ranking columns on phones');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('col-fplus'), 'ranking shortcode marks F+ column');
 assert(pluginApp.includes('showSignatures') && pluginApp.includes('frameFormat'), 'wp club settings control signatures and frame format');
 assert(embedJs.includes('snookerPrint') && embedJs.includes('data-static') && embedJs.includes('afterprint'), 'embed isolates print and keeps SSR reports');

@@ -383,9 +383,23 @@ class Snookerclub_Render {
         if ($rows === '') {
             return '<p class="snooker-live-muted">Nog geen spelers. Open Snookerclub → Clubbeheer en voeg namen toe.</p>';
         }
-        return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table">'
+        return self::table_wrap(
+            '<table class="snooker-league snooker-sheet-table">'
             . '<thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead>'
-            . '<tbody>' . $rows . '</tbody></table></div>';
+            . '<tbody>' . $rows . '</tbody></table>'
+        );
+    }
+
+    /** Wide tables become a swipe slider on narrow screens (via CSS + embed.js). */
+    public static function table_wrap(string $inner): string {
+        return '<div class="snooker-slider-shell">'
+            . '<div class="snooker-table-wrap snooker-slider-track" tabindex="0" role="region" aria-label="Tabel, veeg horizontaal voor meer kolommen">'
+            . $inner
+            . '</div>'
+            . '<p class="snooker-slider-hint no-print" hidden>Veeg om meer te zien</p>'
+            . '<span class="snooker-slider-fade snooker-slider-fade--left" aria-hidden="true"></span>'
+            . '<span class="snooker-slider-fade snooker-slider-fade--right" aria-hidden="true"></span>'
+            . '</div>';
     }
 
     public static function toolbar(string $title = 'Afdrukken', string $csv = ''): string {
@@ -464,9 +478,11 @@ class Snookerclub_Render {
                 . '<td>' . self::esc($row['season'] ?? '') . '</td>'
                 . '</tr>';
         }
-        return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table">'
+        return self::table_wrap(
+            '<table class="snooker-league snooker-sheet-table">'
             . '<thead><tr><th>VERSUS</th><th>TOURNAMENT</th><th>RESULT</th><th>W</th><th>L</th><th>BREAKS</th><th>ROUND</th><th>SEASON</th></tr></thead>'
-            . '<tbody>' . $body . '</tbody></table></div>';
+            . '<tbody>' . $body . '</tbody></table>'
+        );
     }
 
     public static function h2h_table(array $rows): string {
@@ -484,9 +500,11 @@ class Snookerclub_Render {
                 . '<td class="num">' . self::esc($row['lastResult'] ?? '') . '</td>'
                 . '</tr>';
         }
-        return '<div class="snooker-table-wrap"><table class="snooker-league snooker-sheet-table">'
+        return self::table_wrap(
+            '<table class="snooker-league snooker-sheet-table">'
             . '<thead><tr><th>VERSUS</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>Laatste</th></tr></thead>'
-            . '<tbody>' . $body . '</tbody></table></div>';
+            . '<tbody>' . $body . '</tbody></table>'
+        );
     }
 
     public static function dossier(array $data, array $opts = []): string {
