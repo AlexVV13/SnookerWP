@@ -18,7 +18,8 @@ export function normalizeBasePath(raw) {
 }
 
 function publicOrigin(req) {
-  const proto = String(req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+  let proto = String(req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+  if (proto === 'http') proto = 'https';
   const host = String(req.get('x-forwarded-host') || req.get('host') || '').split(',')[0].trim();
   return host ? `${proto}://${host}` : '';
 }
@@ -228,7 +229,10 @@ export function createApp({
 
   router.post('/api/matches', guestLimit, async (req, res) => {
     try {
-      const match = await store.createMatch(req.body || {});
+      const brand = await store.getBrand();
+      const match = await store.createMatch(req.body || {}, {
+        requireSignatures: brand.showSignatures !== false,
+      });
       res.status(201).json({
         match,
         wins: match.wins || frameWins(match.frames),

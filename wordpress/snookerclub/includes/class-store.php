@@ -21,7 +21,7 @@ class Snookerclub_Store {
     public const EVENT_KINDS = ['clubavond', 'toernooi', 'les', 'overig'];
     public const EVENT_KIND_LABELS = [
         'clubavond' => 'Clubavond',
-        'toernooi' => 'Toernooi',
+        'toernooi' => 'Tornooi',
         'les' => 'Les',
         'overig' => 'Overig',
     ];
@@ -51,7 +51,9 @@ class Snookerclub_Store {
         'logoUrl' => '',
         'heroUrl' => 'hero.jpg',
         'showSignatures' => true,
+        'showAvgHandicap' => true,
         'framesCount' => 5,
+        'frameMode' => 'bestof',
         'tournaments' => [
             'Potblack',
             'Rankingtornooi',
@@ -281,6 +283,32 @@ class Snookerclub_Store {
         return $frames;
     }
 
+    public static function parse_frame_format($value = null, $fallbackCount = 5, $fallbackMode = 'bestof'): array {
+        $raw = trim((string) ($value ?? ''));
+        if ($raw !== '' && preg_match('/^(bestof|fixed)[:|-](\d+)$/i', $raw, $match)) {
+            $count = (int) $match[2];
+            if ($count >= 1 && $count <= 17) {
+                return ['frameMode' => strtolower($match[1]), 'framesCount' => $count];
+            }
+        }
+        $n = intval($raw !== '' ? $raw : $fallbackCount);
+        if ($n < 1 || $n > 17) {
+            $n = 5;
+        }
+        $mode = (strtolower((string) $fallbackMode) === 'fixed') ? 'fixed' : 'bestof';
+        if ($raw === '' && is_string($fallbackMode) && preg_match('/^(bestof|fixed)$/i', $fallbackMode)) {
+            $mode = strtolower($fallbackMode);
+        }
+        // Also accept "fixed:3" style already handled; if value was empty use mode+count separately.
+        if ($value === null && is_numeric($fallbackCount)) {
+            $n = (int) $fallbackCount;
+            if ($n < 1 || $n > 17) {
+                $n = 5;
+            }
+        }
+        return ['frameMode' => $mode, 'framesCount' => $n];
+    }
+
     public static function normalize_signature($raw): string {
         if (!$raw) {
             return '';
@@ -303,7 +331,7 @@ class Snookerclub_Store {
         $player1 = self::clean_name($input['player1'] ?? '');
         $player2 = self::clean_name($input['player2'] ?? '');
         if ($tournament === '') {
-            throw self::invalid('Vul een toernooi in.');
+            throw self::invalid('Vul een tornooi in.');
         }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             throw self::invalid('Datum moet jjjj-mm-dd zijn.');
@@ -337,15 +365,21 @@ class Snookerclub_Store {
                 break;
             }
         }
+        $format = self::parse_frame_format(
+            $input['frameFormat'] ?? null,
+            $input['bestOf'] ?? $existing['bestOf'] ?? 5,
+            $input['frameMode'] ?? $existing['frameMode'] ?? 'bestof'
+        );
+        $slots = max($format['framesCount'], count($raw_frames), 1);
         if ($has_scored) {
-            $frames = Snookerclub_Excel::pad_frames(self::normalize_frames($raw_frames, max(5, count($raw_frames))), 5);
+            $frames = Snookerclub_Excel::pad_frames(self::normalize_frames($raw_frames, $slots), $slots);
         } elseif ($paper) {
             $frames = Snookerclub_Excel::pad_frames(
                 Snookerclub_Excel::synthesize_frames($paper['framesFor'], $paper['framesAgainst']),
-                5
+                max($slots, (int) $paper['framesFor'] + (int) $paper['framesAgainst'])
             );
         } else {
-            $frames = self::normalize_frames($input['frames'] ?? [], 5);
+            $frames = self::normalize_frames($input['frames'] ?? [], $slots);
         }
         $averages = self::match_averages($frames);
         $points_known = Snookerclub_Excel::has_real_points($frames);
@@ -354,7 +388,7 @@ class Snookerclub_Store {
         if ($break1 === null || $break2 === null) {
             throw self::invalid('Break is ongeldig (0–155). 147 is het maximum zonder free ball.');
         }
-        $type = strtolower((string) ($input['matchType'] ?? $existing['matchType'] ?? 'competitie'));
+        $type = strtolower((string) ($input['matchType'] ?? $existing['matchType'] ?? ''));
         $source_raw = strtolower((string) ($input['source'] ?? $existing['source'] ?? ($paper && !$has_scored ? 'paper' : 'guest')));
         $source = in_array($source_raw, ['paper', 'admin'], true) ? $source_raw : 'guest';
         $now = gmdate('Y-m-d\TH:i:s.000\Z');
@@ -370,11 +404,12 @@ class Snookerclub_Store {
             'frames' => $frames,
             'break1' => $break1,
             'break2' => $break2,
-            'matchType' => in_array($type, self::MATCH_TYPES, true) ? $type : 'competitie',
+            'matchType' => in_array($type, self::MATCH_TYPES, true) ? $type : '',
             'table' => substr(self::clean_name($input['table'] ?? $existing['table'] ?? ''), 0, 40),
             'referee' => substr(self::clean_name($input['referee'] ?? $existing['referee'] ?? ''), 0, 80),
             'note' => substr(trim((string) ($input['note'] ?? $existing['note'] ?? '')), 0, 200),
-            'bestOf' => self::score($input['bestOf'] ?? $existing['bestOf'] ?? min(5, count($frames)), 17) ?: 5,
+            'bestOf' => $format['framesCount'],
+            'frameMode' => $format['frameMode'],
             'season' => Snookerclub_Excel::normalize_season($input['season'] ?? $existing['season'] ?? '', $date),
             'round' => Snookerclub_Excel::normalize_round($input['round'] ?? $existing['round'] ?? ''),
             'source' => $source,
@@ -447,6 +482,7 @@ class Snookerclub_Store {
             'end' => $end,
             'kind' => $kind,
             'kindLabel' => self::EVENT_KIND_LABELS[$kind],
+            'tournament' => substr(self::clean_name($input['tournament'] ?? $existing['tournament'] ?? ''), 0, 80),
             'place' => substr(trim((string) ($input['place'] ?? '')), 0, 80),
             'note' => substr(trim((string) ($input['note'] ?? '')), 0, 200),
             'createdAt' => $existing['createdAt'] ?? $now,
@@ -664,7 +700,12 @@ class Snookerclub_Store {
 
     public static function normalize_brand($input = []): array {
         $src = is_array($input) ? $input : [];
-        $frames = intval($src['framesCount'] ?? 5);
+        $format = self::parse_frame_format(
+            $src['frameFormat'] ?? null,
+            $src['framesCount'] ?? self::DEFAULT_BRAND['framesCount'],
+            $src['frameMode'] ?? self::DEFAULT_BRAND['frameMode']
+        );
+        $frames = $format['framesCount'];
         if (isset($src['tournaments']) && is_array($src['tournaments'])) {
             $tournaments = array_values(array_filter(array_map(fn($n) => substr(trim((string) $n), 0, 80), $src['tournaments'])));
         } else {
@@ -717,7 +758,9 @@ class Snookerclub_Store {
             'logoUrl' => $safe_url($src['logoUrl'] ?? ''),
             'heroUrl' => $safe_url($src['heroUrl'] ?? '', $def['heroUrl']) ?: $def['heroUrl'],
             'showSignatures' => ($src['showSignatures'] ?? true) !== false && ($src['showSignatures'] ?? true) !== '0',
+            'showAvgHandicap' => ($src['showAvgHandicap'] ?? true) !== false && ($src['showAvgHandicap'] ?? true) !== '0',
             'framesCount' => $frames >= 1 && $frames <= 17 ? $frames : 5,
+            'frameMode' => $format['frameMode'],
             'tournaments' => array_slice($tournaments, 0, 40),
             'notice' => substr(trim((string) ($src['notice'] ?? $def['notice'])), 0, 240),
             'venue' => substr(trim((string) ($src['venue'] ?? $def['venue'])), 0, 120),

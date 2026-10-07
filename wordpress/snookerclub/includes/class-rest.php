@@ -246,8 +246,10 @@ class Snookerclub_Rest {
 
     public static function create_match(WP_REST_Request $request) {
         try {
-            Snookerclub_Plugin::guest_limit();
-            $match = self::store()->create_match(self::body($request));
+            $brand = self::store()->get_brand();
+            $match = self::store()->create_match(self::body($request), [
+                'require_signatures' => !empty($brand['showSignatures']),
+            ]);
             return new WP_REST_Response([
                 'match' => $match,
                 'wins' => $match['wins'] ?? Snookerclub_Store::frame_wins($match['frames'] ?? []),
