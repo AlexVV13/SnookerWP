@@ -51,6 +51,7 @@ class Snookerclub_Store {
         'logoUrl' => '',
         'heroUrl' => 'hero.jpg',
         'showSignatures' => true,
+        'showAvgHandicap' => true,
         'framesCount' => 5,
         'frameMode' => 'bestof',
         'tournaments' => [
@@ -757,6 +758,7 @@ class Snookerclub_Store {
             'logoUrl' => $safe_url($src['logoUrl'] ?? ''),
             'heroUrl' => $safe_url($src['heroUrl'] ?? '', $def['heroUrl']) ?: $def['heroUrl'],
             'showSignatures' => ($src['showSignatures'] ?? true) !== false && ($src['showSignatures'] ?? true) !== '0',
+            'showAvgHandicap' => ($src['showAvgHandicap'] ?? true) !== false && ($src['showAvgHandicap'] ?? true) !== '0',
             'framesCount' => $frames >= 1 && $frames <= 17 ? $frames : 5,
             'frameMode' => $format['frameMode'],
             'tournaments' => array_slice($tournaments, 0, 40),

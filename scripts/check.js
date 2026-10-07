@@ -36,6 +36,7 @@ assert(guestHtmlSrc.includes('name="frameFormat"') && guestHtmlSrc.includes('pou
 assert(!guestHtmlSrc.includes('name="matchType"') && !guestHtmlSrc.includes('name="table"') && !guestHtmlSrc.includes('name="referee"'), 'guest form dropped soort, baan and scheidsrechter');
 assert(guestHtmlSrc.includes('Tornooi') && !guestHtmlSrc.includes('>Toernooi '), 'guest uses Tornooi spelling');
 assert(guestJs.includes('signaturesRequired') && guestJs.includes('showSignatures'), 'guest can disable signatures from brand');
+assert(guestJs.includes('showAvgHandicap') && guestJs.includes('shortName'), 'guest can hide average handicap and shortens names');
 assert(DEFAULT_BRAND.tournaments.includes('6 Red') && DEFAULT_BRAND.tournaments.includes('Kersttornooi'), 'default brand has Merode tornooien');
 assert(DEFAULT_BRAND.frameMode === 'bestof' && FRAME_FORMATS.some((row) => row.mode === 'fixed' && row.count === 3), 'brand supports fixed poule frames');
 assert(!guestJs.includes('handicap1:') && !guestJs.includes('form.handicap1'), 'guest does not post handicap fields');
@@ -74,8 +75,8 @@ assert(adminJs.includes('renderAppInfo') && adminJs.includes('kpis'), 'admin ren
 assert(dockerfile.includes('package-wp-plugin.js'), 'docker image bakes the wordpress plugin zip');
 assert(dockerfile.includes('HEALTHCHECK') && dockerfile.includes('org.opencontainers.image.version'), 'docker image is versioned and healthchecked');
 assert(compose.includes('healthcheck:') && compose.includes('no-new-privileges'), 'compose is production-shaped');
-assert(compose.includes('APP_VERSION: "1.0.4"') && compose.includes('webhost-snooker:1.0.4'), 'compose pins 1.0.4');
-assert(dockerfile.includes('ARG APP_VERSION=1.0.4'), 'docker default version is 1.0.4');
+assert(compose.includes('APP_VERSION: "1.0.5"') && compose.includes('webhost-snooker:1.0.5'), 'compose pins 1.0.5');
+assert(dockerfile.includes('ARG APP_VERSION=1.0.5'), 'docker default version is 1.0.5');
 assert(guestJs.includes('function applyLogo') && adminJs.includes('function applyLogo') && adminHtmlSrc.includes('id="side-club"'), 'logo and admin sidebar use the club brand');
 assert(guestJs.includes('Winst / frames') && adminJs.includes('Hoogste break') && !guestJs.includes('TOTAL PLATEAU'), 'dossier cards are Dutch');
 assert(fs.existsSync(path.join(root, '../.env.example')), 'env example documents host, path and data dir');
@@ -95,7 +96,7 @@ assert(guestJs.includes('SNOOKER_NONCE') && adminJs.includes('SNOOKER_NONCE'), '
 const pluginMain = fs.readFileSync(path.join(PLUGIN_DIR, 'snookerclub.php'), 'utf8');
 const pluginUpdater = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-updater.php'), 'utf8');
 const pluginApp = fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-plugin.php'), 'utf8');
-assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.4', 'wp plugin header version');
+assert(pluginMain.includes('Plugin Name: Snookerclub') && pluginHeaderVersion(pluginMain) === '1.0.5', 'wp plugin header version');
 assert(pluginMain.includes('Update URI:'), 'wp plugin declares an Update URI');
 assert(pluginUpdater.includes('pre_set_site_transient_update_plugins') && pluginUpdater.includes('auto_update_plugin'), 'wp plugin checks and auto-updates');
 assert(pluginUpdater.includes('DEFAULT_FEED') && pluginUpdater.includes('sync_wp_auto_update_flag') && pluginUpdater.includes('https_url'), 'updater uses default https feed and syncs WP auto-update');
@@ -123,6 +124,10 @@ assert(fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes(
 assert(!fs.readFileSync(path.join(root, '../public/guest.css'), 'utf8').includes('td:nth-child(8) { display: none'), 'guest css keeps all ranking columns on phones');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-render.php'), 'utf8').includes('col-fplus'), 'ranking shortcode marks F+ column');
 assert(pluginApp.includes('showSignatures') && pluginApp.includes('frameFormat'), 'wp club settings control signatures and frame format');
+assert(pluginApp.includes('showAvgHandicap') && !pluginApp.includes('guest_limit'), 'wp settings toggle average handicap and skip guest rate limiting');
+assert(embedJs.includes('showAvgHandicap') && embedJs.includes('shortName') && embedJs.includes('has-events'), 'embed shortens names, toggles HC and styles agenda events');
+assert(boardCss.includes('snookerclub-board--site') && boardCss.includes('--snooker-surface-2') && boardCss.includes('.snooker-live-day.has-events'), 'site skin calendar uses theme tokens');
+assert(DEFAULT_BRAND.showAvgHandicap === true, 'brand defaults keep average handicap visible until toggled off');
 assert(embedJs.includes('snookerPrint') && embedJs.includes('data-static') && embedJs.includes('afterprint'), 'embed isolates print and keeps SSR reports');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'blocks/board/block.json'), 'utf8').includes('"style": "snookerclub-board"'), 'block metadata links board.css');
 assert(fs.readFileSync(path.join(PLUGIN_DIR, 'includes/class-theme.php'), 'utf8').includes('.snookerclub-board'), 'theme tokens apply to inserted boards');

@@ -11,7 +11,7 @@ Ranking, uitslagen, agenda en invoer als invoegbare templates. Geen Node-app en 
    ```
 
 2. In WordPress: **Plugins → Nieuwe plugin → Uploaden** en `snookerclub.zip` kiezen.
-3. Activeer **Snookerclub**. Bij een eerdere installatie: deactiveren, verwijderen, zip 1.0.4 uploaden.
+3. Activeer **Snookerclub**. Bij een eerdere installatie: deactiveren, verwijderen, zip 1.0.5 uploaden.
 4. Beheer: **Snookerclub** in het dashboard. Vul eerst **Clubgegevens** (clubnaam). Zet templates op eigen pagina’s via Gutenberg.
 
 Uitgebreide stappen: [../docs/INSTALL.md](../docs/INSTALL.md).
@@ -43,7 +43,7 @@ Dashboard: **Snookerclub → Rapporten** voor seizoenfilter, afdruk en CSV. Papi
 
 ## Vormgeving
 
-Clubnaam: **Snookerclub → Clubgegevens**, of Customizer → Snookerclub. Standaard SC De Merodesnookers (Turnhout). Thema’s: Baize, Nacht, Ivoor, Club, Ruby. `skin="site"` volgt het WordPress-thema. Versie 1.0.4.
+Clubnaam: **Snookerclub → Clubgegevens**, of Customizer → Snookerclub. Standaard SC De Merodesnookers (Turnhout). Thema’s: Baize, Nacht, Ivoor, Club, Ruby. `skin="site"` volgt het WordPress-thema. Versie 1.0.5.
 
 ## Updates
 

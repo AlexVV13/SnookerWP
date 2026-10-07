@@ -27,6 +27,21 @@
     return player && player.framesPlayed ? Number(player.handicap || 0).toFixed(1) : '—';
   }
 
+  function showAvgHandicap(brand) {
+    return !(brand && (brand.showAvgHandicap === false || brand.showAvgHandicap === '0' || brand.showAvgHandicap === 0));
+  }
+
+  function shortName(name, max) {
+    var s = String(name == null ? '' : name).trim();
+    var limit = max || 8;
+    return s.length > limit ? s.slice(0, limit) + '…' : s;
+  }
+
+  function nameHtml(name, cls) {
+    var full = esc(name);
+    return '<span class="' + (cls || 'snooker-name') + '" title="' + full + '">' + esc(shortName(name)) + '</span>';
+  }
+
   function gem(player) {
     if (player && player.framesPlayed && player.avgPoints != null) {
       return Number(player.avgPoints).toFixed(1).replace('.', ',');
@@ -85,12 +100,14 @@
       '</p><h3 class="snooker-live-title">' + esc(title) + '</h3></header>';
   }
 
-  function podium(players) {
+  function podium(players, brand) {
     var top = (players || []).slice(0, 3);
     if (!top.length) return '';
+    var withHc = showAvgHandicap(brand);
     return '<div class="snooker-podium">' + top.map(function (player) {
+      var meta = (player.points || 0) + ' ptn' + (withHc ? ' · HC ' + hc(player) : '');
       return '<article class="snooker-seat ' + esc(player.trophy || '') + '">' + trophy(player.trophy) +
-        '<strong class="snooker-seat-name">' + esc(player.name) + '</strong><p>' + (player.points || 0) + ' ptn · HC ' + hc(player) + '</p></article>';
+        '<strong class="snooker-seat-name">' + nameHtml(player.name) + '</strong><p>' + meta + '</p></article>';
     }).join('') + '</div>';
   }
 
@@ -216,18 +233,20 @@
       }).join('') + '</tbody></table>');
   }
 
-  function league(players) {
+  function league(players, brand) {
     if (!(players || []).length) return '<p class="snooker-live-muted">Nog geen spelers.</p>';
-    return tableWrap('<table class="snooker-league snooker-sheet-table"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead><tbody>' +
+    var withHc = showAvgHandicap(brand);
+    return tableWrap('<table class="snooker-league snooker-sheet-table' + (withHc ? '' : ' snooker-league--no-gem') + '"><thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th>' +
+      (withHc ? '<th class="col-gem">Gem.</th>' : '') + '</tr></thead><tbody>' +
       players.map(function (player) {
         var matchPct = player.matchPct != null ? Number(player.matchPct).toFixed(2).replace('.', ',') + '%' : (player.winRate || 0) + '%';
         var framePct = player.framePct != null ? Number(player.framePct).toFixed(2).replace('.', ',') + '%' : '0,00%';
-        return '<tr><td class="num">' + (player.rank || 0) + '</td><td class="name">' + trophy(player.trophy) + esc(player.name) +
+        return '<tr><td class="num">' + (player.rank || 0) + '</td><td class="name">' + trophy(player.trophy) + nameHtml(player.name) +
           '</td><td class="num">' + (player.wins || 0) + '</td><td class="num">' + (player.losses || 0) +
           '</td><td class="num col-fplus">' + (player.framesFor || 0) + '</td><td class="num">' + (player.framesAgainst || 0) +
           '</td><td class="num">' + matchPct + '</td><td class="num">' + framePct +
-          '</td><td class="num">' + (player.highestBreak || '—') + '</td><td class="num">' +
-          gem(player) + '</td></tr>';
+          '</td><td class="num">' + (player.highestBreak || '—') + '</td>' +
+          (withHc ? '<td class="num col-gem">' + gem(player) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody></table>');
   }
 
@@ -245,15 +264,15 @@
     var latest = data.latest || (data.recent && data.recent[0]);
     host.innerHTML = head(data.brand, 'Live overzicht') +
       '<div class="snooker-live-grid"><div class="snooker-live-card"><p class="snooker-live-muted">Hoogste break</p><p class="snooker-live-big">' +
-      (high.value || '—') + '</p><p class="snooker-live-muted">' + esc(high.player || 'Nog geen breaks') +
+      (high.value || '—') + '</p><p class="snooker-live-muted">' + (high.player ? nameHtml(high.player) : esc('Nog geen breaks')) +
       '</p></div><div class="snooker-live-card"><p class="snooker-live-muted">Laatste wedstrijd</p><p class="snooker-live-big">' +
       (latest && latest.wins ? latest.wins.p1 + '–' + latest.wins.p2 : '—') +
-      '</p><p class="snooker-live-muted">' + (latest ? esc(latest.player1) + ' — ' + esc(latest.player2) : esc(data.nextEventLabel || 'Nog geen wedstrijd')) +
-      '</p></div></div>' + podium(data.top3) + results((data.recent || []).slice(0, 4));
+      '</p><p class="snooker-live-muted">' + (latest ? nameHtml(latest.player1) + ' — ' + nameHtml(latest.player2) : esc(data.nextEventLabel || 'Nog geen wedstrijd')) +
+      '</p></div></div>' + podium(data.top3, data.brand) + results((data.recent || []).slice(0, 4));
   }
 
   function renderPlayers(host, data) {
-    host.innerHTML = head(data.brand, 'Ranking') + podium(data.top3 || data.players) + league(data.players);
+    host.innerHTML = head(data.brand, 'Ranking') + podium(data.top3 || data.players, data.brand) + league(data.players, data.brand);
   }
 
   function renderMatchList(host, data) {
@@ -267,8 +286,9 @@
       '<div class="snooker-live-cal">' + (agenda.days || []).map(function (day) {
         if (day.empty) return '<div class="snooker-live-day empty"></div>';
         var first = (day.events || [])[0];
-        return '<div class="snooker-live-day' + (day.today ? ' today' : '') + '"><strong>' + day.day + '</strong>' +
-          (first ? '<small>' + esc(first.title) + '</small>' : '') + '</div>';
+        var cls = 'snooker-live-day' + (day.today ? ' today' : '') + (first ? ' has-events' : '');
+        return '<div class="' + cls + '"><strong>' + day.day + '</strong>' +
+          (first ? '<small title="' + esc(first.title) + '">' + esc(shortName(first.title, 8)) + '</small>' : '') + '</div>';
       }).join('') + '</div>' +
       ((agenda.upcoming || []).length
         ? agenda.upcoming.map(function (event) {
@@ -299,7 +319,7 @@
   function renderRapport(host, data) {
     var csv = host.getAttribute('data-src') || '';
     host.innerHTML = toolbar('Ranglijst afdrukken', csv ? csv + (csv.indexOf('?') >= 0 ? '&' : '?') + 'format=csv' : '') +
-      sheetHead(data.brand, 'Ranglijst', data.season, data.printedAt) + league(data.players);
+      sheetHead(data.brand, 'Ranglijst', data.season, data.printedAt) + league(data.players, data.brand);
   }
 
   function renderDossier(host, data) {

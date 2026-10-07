@@ -74,6 +74,15 @@ function formatHc(value, framesPlayed) {
   return Number(value || 0).toFixed(1);
 }
 
+function showAvgHandicap(brand = lastBrand) {
+  return !(brand && (brand.showAvgHandicap === false || brand.showAvgHandicap === '0' || brand.showAvgHandicap === 0));
+}
+
+function shortName(name, max = 8) {
+  const s = String(name ?? '').trim();
+  return s.length > max ? `${s.slice(0, max)}…` : s;
+}
+
 function formatGem(player) {
   if (player && player.framesPlayed && player.avgPoints != null) {
     return formatHc(player.avgPoints, player.framesPlayed);
@@ -90,7 +99,8 @@ function formatPct(value, digits = 2) {
 
 function playerLabel(select) {
   const opt = select?.selectedOptions?.[0];
-  return opt && opt.value ? opt.textContent : 'Speler';
+  if (!opt || !opt.value) return 'Speler';
+  return opt.dataset.full || opt.textContent || 'Speler';
 }
 
 function syncPlayerChoices() {
@@ -111,7 +121,7 @@ function fillPlayerSelects(roster, selected = {}) {
   const list = roster || [];
   lastRoster = list;
   const html = ['<option value="">Kies speler</option>']
-    .concat(list.map((player) => `<option value="${esc(player.id)}">${esc(player.name)}</option>`))
+    .concat(list.map((player) => `<option value="${esc(player.id)}" data-full="${esc(player.name)}" title="${esc(player.name)}">${esc(shortName(player.name))}</option>`))
     .join('');
   for (const name of ['player1', 'player2']) {
     const select = document.querySelector(`[name="${name}"]`);
@@ -221,19 +231,27 @@ function refreshPreview() {
   const box = document.getElementById('wiz-preview');
   if (!form || !box) return;
   const preview = wizardPreview(form);
+  const hcLine = showAvgHandicap()
+    ? (preview.played
+      ? `HC ${preview.hc1.toFixed(1)} / ${preview.hc2.toFixed(1)} · ${preview.played} frames`
+      : '0–0 frames tellen niet mee voor de handicap')
+    : (preview.played ? `${preview.played} frames gespeeld` : 'Nog geen gespeelde frames');
   box.innerHTML = `
     <strong>${preview.lead}</strong>
     <span>${preview.n1} ${preview.w1}–${preview.w2} ${preview.n2}</span>
-    <span>${preview.played ? `HC ${preview.hc1.toFixed(1)} / ${preview.hc2.toFixed(1)} · ${preview.played} frames` : '0–0 frames tellen niet mee voor de handicap'}</span>
+    <span>${hcLine}</span>
   `;
   document.querySelectorAll('[data-p1-label]').forEach((el) => { el.textContent = preview.n1; });
   document.querySelectorAll('[data-p2-label]').forEach((el) => { el.textContent = preview.n2; });
   const review = document.getElementById('wiz-review');
   if (review) {
+    const stand = showAvgHandicap()
+      ? `Stand ${preview.w1}–${preview.w2} · HC ${preview.played ? `${preview.hc1.toFixed(1)} / ${preview.hc2.toFixed(1)}` : '—'}`
+      : `Stand ${preview.w1}–${preview.w2}`;
     review.innerHTML = `
       <p><strong>${esc(preview.n1)}</strong> tegen <strong>${esc(preview.n2)}</strong></p>
       <p>${esc(form.tournament.value || '—')} · ${esc(form.date.value || '—')} · ${esc(frameFormatLabel(form))}</p>
-      <p>Stand ${preview.w1}–${preview.w2} · HC ${preview.played ? `${preview.hc1.toFixed(1)} / ${preview.hc2.toFixed(1)}` : '—'}</p>
+      <p>${stand}</p>
     `;
   }
   const sign1 = document.getElementById('sign1-name');
@@ -474,7 +492,7 @@ function renderAgenda(agenda, preferredDay = selectedAgendaDay) {
       const extra = `${day.today ? ' today' : ''}${selectedAgendaDay === day.date ? ' on' : ''}${first ? ' has-events' : ''}`;
       return `<button type="button" class="cal-day${extra}" data-agenda-day="${esc(day.date)}">
         <strong>${day.day}</strong>
-        ${first ? `<small>${esc(first.title)}</small>` : ''}
+        ${first ? `<small title="${esc(first.title)}">${esc(shortName(first.title, 8))}</small>` : ''}
         ${day.events.length > 1 ? `<small>+${day.events.length - 1}</small>` : ''}
       </button>`;
     }).join('');
@@ -511,20 +529,31 @@ function renderPlayers(players) {
   const podium = document.getElementById('podium');
   const table = document.getElementById('player-table');
   if (!podium || !table) return;
+  const withHc = showAvgHandicap();
+  const head = table.closest('table')?.querySelector('thead tr');
+  if (head) {
+    head.innerHTML = `<th>#</th><th>Speler</th><th>W</th><th>L</th><th>F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th>${withHc ? '<th>Gem. punten/frame</th>' : ''}`;
+  }
   const top = (players || []).filter((player) => player.trophy).slice(0, 3);
   podium.innerHTML = top.length
-    ? top.map((player) => `
+    ? top.map((player) => {
+      const meta = withHc
+        ? `${player.points} punten · HC ${formatHc(player.handicap, player.framesPlayed)}`
+        : `${player.points} punten`;
+      return `
       <div class="seat ${player.trophy}">
         ${trophySvg(player.trophy)}
-        <strong>${esc(player.name)}</strong>
-        <p class="sub">${player.points} punten · HC ${formatHc(player.handicap, player.framesPlayed)}</p>
+        <strong title="${esc(player.name)}">${esc(shortName(player.name))}</strong>
+        <p class="sub">${meta}</p>
       </div>
-    `).join('')
+    `;
+    }).join('')
     : '<p class="sub">Nog geen ranglijst. Speel de eerste frames.</p>';
+  const cols = withHc ? 10 : 9;
   table.innerHTML = (players || []).map((player) => `
     <tr>
       <td>${player.rank}</td>
-      <td>${player.trophy ? trophySvg(player.trophy) : ''}<button type="button" class="player-link" data-dossier="${esc(player.name)}">${esc(player.name)}</button></td>
+      <td>${player.trophy ? trophySvg(player.trophy) : ''}<button type="button" class="player-link" data-dossier="${esc(player.name)}" title="${esc(player.name)}">${esc(shortName(player.name))}</button></td>
       <td>${player.wins}</td>
       <td>${player.losses}</td>
       <td>${player.framesFor}</td>
@@ -532,9 +561,9 @@ function renderPlayers(players) {
       <td>${formatPct(player.matchPct ?? player.winRate)}</td>
       <td>${formatPct(player.framePct)}</td>
       <td>${player.highestBreak || '—'}</td>
-      <td>${formatGem(player)}</td>
+      ${withHc ? `<td>${formatGem(player)}</td>` : ''}
     </tr>
-  `).join('') || '<tr><td colspan="10">Nog geen spelers.</td></tr>';
+  `).join('') || `<tr><td colspan="${cols}">Nog geen spelers.</td></tr>`;
   table.querySelectorAll('[data-dossier]').forEach((btn) => {
     btn.addEventListener('click', () => openDossier(btn.dataset.dossier));
   });
@@ -649,7 +678,7 @@ function renderOverview(data) {
         <div class="sub">
           ${esc(match.tournament)} · ${esc(match.date)}
           ${match.frameMode === 'fixed' ? ` · ${match.bestOf || match.frames?.length || ''} frames (poule)` : (match.bestOf ? ` · best of ${match.bestOf}` : '')}
-          ${match.framesPlayed ? ` · HC ${formatHc(match.handicap1, match.framesPlayed)}/${formatHc(match.handicap2, match.framesPlayed)}` : ''}
+          ${showAvgHandicap(data.brand) && match.framesPlayed ? ` · HC ${formatHc(match.handicap1, match.framesPlayed)}/${formatHc(match.handicap2, match.framesPlayed)}` : ''}
           ${match.note ? ` · ${esc(match.note)}` : ''}
         </div>
         ${data.brand.showSignatures !== false && (match.signature1 || match.signature2) ? `

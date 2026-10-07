@@ -565,7 +565,6 @@ class Snookerclub_Plugin {
                 self::send_json(self::local_plugin_manifest(), 200, true);
             }
             if ($path === 'matches' && $method === 'POST') {
-                self::guest_limit();
                 $match = self::store()->create_match(self::request_json());
                 self::send_json([
                     'match' => $match,
@@ -714,20 +713,6 @@ class Snookerclub_Plugin {
                 self::send_json(['error' => 'Ongeldige beveiligingscode. Vernieuw de pagina.'], 403);
             }
         }
-    }
-
-    public static function guest_limit(): void {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '0';
-        $key = 'snookerclub_rl_' . md5($ip);
-        $hits = get_transient($key);
-        $hits = is_array($hits) ? $hits : [];
-        $now = time();
-        $hits = array_values(array_filter($hits, fn($t) => $t > $now - 3600));
-        if (count($hits) >= 30) {
-            throw new Snookerclub_Invalid('Te veel inzendingen. Probeer later opnieuw.');
-        }
-        $hits[] = $now;
-        set_transient($key, $hits, 3600);
     }
 
     public static function local_plugin_manifest(): array {
@@ -1416,6 +1401,7 @@ class Snookerclub_Plugin {
                 'frameFormat' => sanitize_text_field(wp_unslash($_POST['frameFormat'] ?? 'bestof:5')),
                 'tournaments' => array_values(array_filter(array_map('sanitize_text_field', $tournaments ?: []))),
                 'showSignatures' => !empty($_POST['showSignatures']),
+                'showAvgHandicap' => !empty($_POST['showAvgHandicap']),
             ]);
             self::sync_app_page_title((string) ($brand['clubName'] ?? ''));
             echo '<div class="notice notice-success"><p>Clubnaam en clubgegevens opgeslagen. Ze staan op de site, in rapporten en op afdrukbladen.</p></div>';
@@ -1502,6 +1488,8 @@ class Snookerclub_Plugin {
         echo '<p class="description">Eén per regel. Bij Merode o.a. Potblack, Rankingtornooi, Kersttornooi, Handicaptornooi, 6 Red, Open Merode. Agenda-items kunnen hieraan gekoppeld worden.</p></td></tr>';
         echo '<tr><th>Handtekeningen</th><td><label><input type="checkbox" name="showSignatures" value="1"' . checked(!empty($brand['showSignatures']), true, false) . ' /> Verplicht bij uitslaginvoer (beide spelers tekenen)</label>';
         echo '<p class="description">Uitvinken = geen handtekeningvelden bij invoer. Handtekeningen verdwijnen ook bij recente uitslagen.</p></td></tr>';
+        echo '<tr><th>Gem. handicap</th><td><label><input type="checkbox" name="showAvgHandicap" value="1"' . checked(!empty($brand['showAvgHandicap']), true, false) . ' /> Toon gemiddelde handicap (HC / Gem.) op ranking en podium</label>';
+        echo '<p class="description">Uitvinken = compactere ranking zonder HC-cijfers. Handig op telefoon en smallere shortcodes.</p></td></tr>';
         echo '</table>';
         submit_button('Clubgegevens opslaan');
         echo '</form>';

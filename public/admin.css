@@ -361,7 +361,9 @@ input, textarea, select {
 }
 .cal-day.empty { visibility: hidden; }
 .cal-day.on { box-shadow: inset 0 0 0 2px var(--accent); }
-.cal-day.today { background: #e8f8ee; }
+.cal-day.has-events { background: color-mix(in srgb, var(--accent, #2ea85a) 12%, var(--surface, #fff)); }
+.cal-day.today { background: color-mix(in srgb, var(--accent, #2ea85a) 16%, var(--surface, #fff)); }
+.cal-day.on { box-shadow: inset 0 0 0 2px var(--accent, #2ea85a); background: color-mix(in srgb, var(--accent, #2ea85a) 20%, var(--surface, #fff)); }
 .cal-day strong { display: block; font-size: 13px; }
 .cal-day small {
   display: block;

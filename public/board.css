@@ -85,19 +85,28 @@
 }
 .snooker-live-day {
   min-height: 46px;
-  background: var(--snooker-surface-2);
+  background: var(--snooker-surface-2, color-mix(in srgb, var(--snooker-accent, #2ea85a) 8%, #fff));
+  border: 1px solid var(--snooker-line, color-mix(in srgb, currentColor 12%, transparent));
   border-radius: 8px;
   padding: 4px;
   font-size: 11px;
+  color: var(--snooker-ink, inherit);
 }
 .snooker-live-day.empty { visibility: hidden; }
-.snooker-live-day.today { box-shadow: inset 0 0 0 2px var(--snooker-accent); }
+.snooker-live-day.has-events {
+  background: color-mix(in srgb, var(--snooker-accent, #2ea85a) 12%, var(--snooker-surface, #fff));
+}
+.snooker-live-day.today {
+  box-shadow: inset 0 0 0 2px var(--snooker-accent, #2ea85a);
+  background: color-mix(in srgb, var(--snooker-accent, #2ea85a) 18%, var(--snooker-surface, #fff));
+}
 .snooker-live-day small {
   display: block;
   color: var(--snooker-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 .snooker-trophy,
 .snookerclub-board svg.snooker-trophy,
@@ -136,6 +145,19 @@
   font-weight: 700;
 }
 .snooker-seat p { margin: 0; color: color-mix(in srgb, currentColor 72%, #5b6d61); font-size: 12px; opacity: 1; }
+.snooker-name,
+.snooker-seat-name,
+.snooker-league td.name .snooker-name {
+  display: inline-block;
+  max-width: 9ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.snooker-league td.name {
+  max-width: 11rem;
+}
 .snooker-slider-shell {
   position: relative;
   max-width: 100%;
@@ -237,8 +259,16 @@
 .snookerclub-embed { max-width: 960px; }
 
 .snookerclub-board--site {
+  /* Pull club/theme tokens so calendar & cards follow skins or WP inherit */
+  --snooker-ink: var(--ink, currentColor);
+  --snooker-muted: var(--muted, color-mix(in srgb, currentColor 58%, transparent));
+  --snooker-accent: var(--accent, #2ea85a);
+  --snooker-gold: var(--gold, var(--accent-2, #f0b429));
+  --snooker-surface: var(--surface, color-mix(in srgb, currentColor 4%, transparent));
+  --snooker-surface-2: var(--surface-2, color-mix(in srgb, var(--accent, currentColor) 10%, transparent));
+  --snooker-line: var(--line, color-mix(in srgb, currentColor 14%, transparent));
   font-family: inherit;
-  color: inherit;
+  color: var(--snooker-ink);
   background: transparent;
   box-shadow: none;
   max-width: none;
@@ -247,30 +277,49 @@
   border: 0;
 }
 .snookerclub-board--site .snooker-live-title,
-.snookerclub-board--site .snooker-subhead { font-family: inherit; }
+.snookerclub-board--site .snooker-subhead { font-family: inherit; color: inherit; }
+.snookerclub-board--site .snooker-live-kicker { color: var(--snooker-gold); }
+.snookerclub-board--site .snooker-live-muted { color: var(--snooker-muted); }
 .snookerclub-board--site .snooker-live-card,
 .snookerclub-board--site .snooker-seat,
 .snookerclub-board--site .snooker-live-day {
-  background: color-mix(in srgb, currentColor 5%, #fff);
+  background: var(--snooker-surface-2);
+  color: var(--snooker-ink);
+  border: 1px solid var(--snooker-line);
 }
-.snookerclub-board--site .snooker-seat,
-.snookerclub-board--site .snooker-seat.gold,
-.snookerclub-board--site .snooker-seat.silver,
+.snookerclub-board--site .snooker-live-day.has-events {
+  background: color-mix(in srgb, var(--snooker-accent) 14%, var(--snooker-surface, transparent));
+}
+.snookerclub-board--site .snooker-live-day.today {
+  box-shadow: inset 0 0 0 2px var(--snooker-accent);
+  background: color-mix(in srgb, var(--snooker-accent) 20%, var(--snooker-surface, transparent));
+}
+.snookerclub-board--site .snooker-seat.gold {
+  color: var(--snooker-ink);
+  background: color-mix(in srgb, #e4c25a 28%, var(--snooker-surface, #fff));
+}
+.snookerclub-board--site .snooker-seat.silver {
+  color: var(--snooker-ink);
+  background: color-mix(in srgb, #c5cdd4 32%, var(--snooker-surface, #fff));
+}
 .snookerclub-board--site .snooker-seat.bronze {
-  color: #1d2a22;
+  color: var(--snooker-ink);
+  background: color-mix(in srgb, #c47a3a 28%, var(--snooker-surface, #fff));
 }
-.snookerclub-board--site .snooker-seat.gold { background: color-mix(in srgb, #e4c25a 24%, #fff); }
-.snookerclub-board--site .snooker-seat.silver { background: color-mix(in srgb, #c5cdd4 30%, #fff); }
-.snookerclub-board--site .snooker-seat.bronze { background: color-mix(in srgb, #c47a3a 24%, #fff); }
-.snookerclub-board--site .snooker-seat strong {
-  color: #1d2a22;
+.snookerclub-board--site .snooker-seat strong,
+.snookerclub-board--site .snooker-seat p {
+  color: inherit;
   opacity: 1;
 }
-.snookerclub-board--site .snooker-league th { color: inherit; opacity: 0.7; }
+.snookerclub-board--site .snooker-league th { color: var(--snooker-muted); opacity: 1; }
 .snookerclub-board--site .snooker-league th.col-fplus,
 .snookerclub-board--site .snooker-league td.col-fplus {
   opacity: 1;
   font-weight: 600;
+  color: var(--snooker-ink);
+}
+.snookerclub-board--site .snooker-league tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--snooker-accent) 6%, var(--snooker-surface, transparent));
 }
 .snookerclub-board--site .snooker-trophy,
 .snookerclub-board--site svg.snooker-trophy {
@@ -483,16 +532,41 @@
   }
   .snooker-live-weekdays,
   .snooker-live-cal {
-    gap: 2px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
+  }
+  .snooker-live-weekdays span {
+    font-size: 9px;
+    letter-spacing: 0.02em;
   }
   .snooker-live-day {
-    min-height: 44px;
-    padding: 4px 2px;
+    min-height: 40px;
+    padding: 4px 3px;
+    border-radius: 8px;
+    font-size: 11px;
+    background: var(--snooker-surface-2);
+    border: 1px solid var(--snooker-line);
+  }
+  .snooker-live-day strong {
+    font-size: 12px;
+    line-height: 1.2;
   }
   .snooker-live-day small {
-    font-size: 9px;
+    font-size: 8px;
     line-height: 1.15;
+    margin-top: 2px;
+  }
+  .snooker-seat {
+    padding: 10px 12px;
+  }
+  .snooker-seat-name,
+  .snooker-name {
+    max-width: 8ch;
+    font-size: 0.95rem;
+  }
+  .snooker-league td.name {
+    min-width: 5.5rem;
+    max-width: 8.5rem;
   }
   .snooker-report-toolbar {
     flex-wrap: wrap;

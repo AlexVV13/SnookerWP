@@ -65,6 +65,17 @@ $ranking = Snookerclub_Render::ranking([
 assert_true(str_contains($ranking, 'snooker-league') && str_contains($ranking, 'Anna'), 'ranking renders a league table');
 assert_true(str_contains($ranking, 'snooker-slider-shell') && str_contains($ranking, 'snooker-slider-track'), 'ranking table is wrapped for mobile slider');
 assert_true(str_contains($ranking, 'snookerclub-board--site'), 'ranking can follow the site skin');
+assert_true(Snookerclub_Render::short_name('Anna Vermeulen') === 'Anna Ver…', 'player names truncate to 8 characters');
+$compact = Snookerclub_Render::ranking([
+    'brand' => ['clubName' => 'Tafels', 'showAvgHandicap' => false],
+    'players' => [[
+        'rank' => 1, 'name' => 'Anna Vermeulen', 'played' => 2, 'wins' => 2, 'losses' => 0,
+        'framesFor' => 6, 'framesAgainst' => 1, 'points' => 4, 'handicap' => 62, 'framesPlayed' => 6,
+        'highestBreak' => 80, 'trophy' => 'gold',
+    ]],
+    'top3' => [['name' => 'Anna Vermeulen', 'points' => 4, 'trophy' => 'gold', 'handicap' => 62, 'framesPlayed' => 6]],
+], ['skin' => 'site']);
+assert_true(str_contains($compact, 'Anna Ver') && !str_contains($compact, 'col-gem') && !str_contains($compact, ' · HC '), 'compact ranking hides average handicap and shortens names');
 assert_true(str_contains($ranking, 'snooker-trophy') && str_contains($ranking, 'snooker-trophy--gold'), 'ranking shows a gold trophy');
 $placed = Snookerclub_Render::ranking([
     'brand' => ['clubName' => 'Tafels'],

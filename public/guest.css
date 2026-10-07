@@ -132,7 +132,22 @@ h3 { font-size: 20px; }
 .seat.gold { box-shadow: inset 0 0 0 2px #e4c25a; background: #fff8e0; color: #1d2a22; }
 .seat.silver { background: #eef3f6; color: #1d2a22; }
 .seat.bronze { background: #f8e6d4; color: #1d2a22; }
-.seat strong { color: inherit; opacity: 1; font-weight: 700; }
+.seat strong {
+  color: inherit;
+  opacity: 1;
+  font-weight: 700;
+  display: inline-block;
+  max-width: 9ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+select[name="player1"],
+select[name="player2"] {
+  max-width: 100%;
+  font-size: 15px;
+}
 .trophy { display: inline-block; width: 22px; height: 22px; vertical-align: -5px; margin-right: 4px; }
 .table-wrap { overflow: auto; }
 .career-grid {
@@ -330,9 +345,9 @@ canvas {
   cursor: pointer;
 }
 .cal-day.empty { visibility: hidden; cursor: default; }
-.cal-day.has-events { background: #fbfefb; }
-.cal-day.today { background: #e8f8ee; }
-.cal-day.on { box-shadow: inset 0 0 0 2px var(--accent); background: #e8f8ee; }
+.cal-day.has-events { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.cal-day.today { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.cal-day.on { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 20%, var(--surface)); }
 .cal-day strong { display: block; font-size: 13px; }
 .cal-day small {
   display: block;
@@ -427,9 +442,9 @@ canvas {
     height: auto;
     max-height: 140px;
   }
-  .cal-weekdays, .cal-grid { gap: 2px; }
-  .cal-day { min-height: 48px; padding: 4px 2px; font-size: 12px; }
-  .cal-day small { font-size: 9px; }
+  .cal-weekdays, .cal-grid { gap: 3px; }
+  .cal-day { min-height: 44px; padding: 4px 3px; font-size: 12px; border-radius: 10px; }
+  .cal-day small { font-size: 8px; max-width: 100%; }
   .recent .row { padding: 10px 0; }
   .steps { gap: 6px; }
   .step-dot { font-size: 12px; padding: 6px 8px; }

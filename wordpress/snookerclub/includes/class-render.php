@@ -166,6 +166,38 @@ class Snookerclub_Render {
             : '—';
     }
 
+    /** Compact display names (max 8 chars) for ranking/podium readability. */
+    public static function short_name(string $name, int $max = 8): string {
+        $name = trim($name);
+        if ($name === '') {
+            return '';
+        }
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            if (mb_strlen($name) > $max) {
+                return mb_substr($name, 0, $max) . '…';
+            }
+            return $name;
+        }
+        if (strlen($name) > $max) {
+            return substr($name, 0, $max) . '…';
+        }
+        return $name;
+    }
+
+    public static function name_html(string $name, string $class = 'snooker-name'): string {
+        $full = self::esc($name);
+        $short = self::esc(self::short_name($name));
+        return '<span class="' . esc_attr($class) . '" title="' . $full . '">' . $short . '</span>';
+    }
+
+    public static function show_avg_handicap($brand): bool {
+        if (!is_array($brand)) {
+            return true;
+        }
+        $value = $brand['showAvgHandicap'] ?? true;
+        return $value !== false && $value !== '0' && $value !== 0;
+    }
+
     public static function board(string $view, array $data, array $opts = []): string {
         $opts = self::normalize_opts($opts + ['view' => $view]);
         switch ($opts['view']) {
@@ -207,7 +239,7 @@ class Snookerclub_Render {
             . self::esc($high['value'] ?? '—') . '</p><p class="snooker-live-muted">' . self::esc($high['player'] ?? 'Nog geen breaks')
             . '</p></div><div class="snooker-live-card"><p class="snooker-live-muted">Laatste wedstrijd</p><p class="snooker-live-big">'
             . self::esc($score) . '</p><p class="snooker-live-muted">' . $latest_label . '</p></div></div>'
-            . self::podium($data['top3'] ?? [])
+            . self::podium($data['top3'] ?? [], $brand)
             . self::results_list(array_slice($data['recent'] ?? [], 0, $opts['limit'] ?: 4), 'Recente uitslagen');
         if (empty($data['top3']) && empty($data['recent']) && !$latest) {
             $inner .= '<p class="snooker-live-muted">Nog geen wedstrijden. Voeg spelers toe onder Snookerclub → Clubbeheer en voer daarna een uitslag in.</p>';
@@ -227,8 +259,8 @@ class Snookerclub_Render {
             $players = array_slice($players, 0, $opts['limit']);
         }
         $inner = self::head($brand, 'Ranking')
-            . self::podium(array_slice($data['top3'] ?? $players, 0, 3))
-            . self::league_table($players);
+            . self::podium(array_slice($data['top3'] ?? $players, 0, 3), $brand)
+            . self::league_table($players, $brand);
         return self::wrap('ranking', Snookerclub_Rest::root() . '/players', $inner, $opts);
     }
 
@@ -315,9 +347,17 @@ class Snookerclub_Render {
                 continue;
             }
             $first = ($day['events'] ?? [])[0] ?? null;
-            $cal .= '<div class="snooker-live-day' . (!empty($day['today']) ? ' today' : '') . '"><strong>'
+            $classes = 'snooker-live-day';
+            if (!empty($day['today'])) {
+                $classes .= ' today';
+            }
+            if ($first) {
+                $classes .= ' has-events';
+            }
+            $cal .= '<div class="' . $classes . '"><strong>'
                 . (int) ($day['day'] ?? 0) . '</strong>'
-                . ($first ? '<small>' . self::esc($first['title'] ?? '') . '</small>' : '') . '</div>';
+                . ($first ? '<small title="' . self::esc($first['title'] ?? '') . '">'
+                    . self::esc(self::short_name((string) ($first['title'] ?? ''), 8)) . '</small>' : '') . '</div>';
         }
         $upcoming = '';
         foreach ($agenda['upcoming'] ?? [] as $event) {
@@ -337,24 +377,30 @@ class Snookerclub_Render {
         return self::wrap('agenda', Snookerclub_Rest::root() . '/agenda', $inner, $opts);
     }
 
-    public static function podium(array $players): string {
+    public static function podium(array $players, array $brand = []): string {
         $top = array_values(array_filter($players, fn($p) => !empty($p['trophy']) || !empty($p['played']) || !empty($p['points']) || (int) ($p['rank'] ?? 0) > 0));
         $top = array_slice($top, 0, 3);
         if (!$top) {
             return '';
         }
+        $show_hc = self::show_avg_handicap($brand);
         $html = '<div class="snooker-podium" role="list">';
         foreach ($top as $index => $player) {
             $kind = self::trophy_kind($player, $index);
+            $meta = (int) ($player['points'] ?? 0) . ' ptn';
+            if ($show_hc) {
+                $meta .= ' · HC ' . self::esc(self::hc($player));
+            }
             $html .= '<article class="snooker-seat ' . esc_attr($kind) . '" role="listitem">'
                 . self::trophy($kind)
-                . '<strong class="snooker-seat-name">' . self::esc($player['name'] ?? '') . '</strong>'
-                . '<p>' . (int) ($player['points'] ?? 0) . ' ptn · HC ' . self::esc(self::hc($player)) . '</p></article>';
+                . '<strong class="snooker-seat-name">' . self::name_html((string) ($player['name'] ?? ''), 'snooker-name') . '</strong>'
+                . '<p>' . $meta . '</p></article>';
         }
         return $html . '</div>';
     }
 
-    public static function league_table(array $players): string {
+    public static function league_table(array $players, array $brand = []): string {
+        $show_hc = self::show_avg_handicap($brand);
         $rows = '';
         foreach ($players as $index => $player) {
             $kind = self::trophy_kind($player, $index);
@@ -369,7 +415,7 @@ class Snookerclub_Render {
             }
             $rows .= '<tr>'
                 . '<td class="num">' . (int) ($player['rank'] ?? 0) . '</td>'
-                . '<td class="name">' . self::trophy($kind) . self::esc($player['name'] ?? '') . '</td>'
+                . '<td class="name">' . self::trophy($kind) . self::name_html((string) ($player['name'] ?? '')) . '</td>'
                 . '<td class="num">' . (int) ($player['wins'] ?? 0) . '</td>'
                 . '<td class="num">' . (int) ($player['losses'] ?? 0) . '</td>'
                 . '<td class="num col-fplus">' . (int) ($player['framesFor'] ?? 0) . '</td>'
@@ -377,15 +423,17 @@ class Snookerclub_Render {
                 . '<td class="num">' . self::esc($match_pct) . '</td>'
                 . '<td class="num">' . self::esc($frame_pct) . '</td>'
                 . '<td class="num">' . self::esc(($player['highestBreak'] ?? 0) ?: '—') . '</td>'
-                . '<td class="num">' . $avg . '</td>'
+                . ($show_hc ? '<td class="num col-gem">' . $avg . '</td>' : '')
                 . '</tr>';
         }
         if ($rows === '') {
             return '<p class="snooker-live-muted">Nog geen spelers. Open Snookerclub → Clubbeheer en voeg namen toe.</p>';
         }
         return self::table_wrap(
-            '<table class="snooker-league snooker-sheet-table">'
-            . '<thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th><th>Gem.</th></tr></thead>'
+            '<table class="snooker-league snooker-sheet-table' . ($show_hc ? '' : ' snooker-league--no-gem') . '">'
+            . '<thead><tr><th>#</th><th>Speler</th><th>W</th><th>L</th><th class="col-fplus">F+</th><th>F-</th><th>M%</th><th>F%</th><th>HB</th>'
+            . ($show_hc ? '<th class="col-gem">Gem.</th>' : '')
+            . '</tr></thead>'
             . '<tbody>' . $rows . '</tbody></table>'
         );
     }
@@ -436,7 +484,7 @@ class Snookerclub_Render {
         $src = self::rest_href('rapport', ['season' => $season]);
         $inner = self::toolbar('Ranglijst afdrukken', $csv)
             . self::sheet_head($brand, 'Ranglijst', $season, (string) ($data['printedAt'] ?? ''))
-            . self::league_table($players);
+            . self::league_table($players, $brand);
         return self::wrap('rapport', $src, $inner, $opts + ['season' => $season]);
     }
 

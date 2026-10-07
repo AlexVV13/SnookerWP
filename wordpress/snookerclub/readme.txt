@@ -3,7 +3,7 @@ Contributors: Alex van Vught
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 
 Ranking, uitslagen, rapporten en invoer voor een snookerclub. Standaard geprepareerd voor SC De Merodesnookers (Turnhout).
@@ -23,6 +23,9 @@ Zie docs/INSTALL.md in de bronmap.
 
 == Changelog ==
 
+= 1.0.5 =
+* Spelernamen max. 8 tekens in ranking/podium; optie om gem. handicap (HC/Gem.) aan/uit te zetten.
+* Agenda/kalender volgt clubskins en WordPress-themakleuren (ook op GSM); geen guest rate limiting meer in de plugin.
 = 1.0.4 =
 * Shortcode-tabellen op telefoon: geen kolommen meer verborgen; te brede tabellen worden automatisch een horizontale slider.
 = 1.0.3 =
